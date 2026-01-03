@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ export function PropertiesPanel() {
   const cables = useConnectionStore((state) => state.cables);
   const updateCable = useConnectionStore((state) => state.updateCable);
   const selectedCableId = useUIStore((state) => state.selectedCableId);
+  const selectedPortId = useUIStore((state) => state.selectedPortId);
 
   const selected = useMemo(
     () => equipment.find((item) => item.instanceId === selectedEquipmentId) ?? null,
@@ -28,6 +29,22 @@ export function PropertiesPanel() {
   );
 
   const portPositions = usePortStore((state) => state.positions);
+  const portRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [activeTab, setActiveTab] = useState('details');
+
+  useEffect(() => {
+    if (!selectedPortId) return;
+    setActiveTab('ports');
+  }, [selectedPortId]);
+
+  useEffect(() => {
+    if (activeTab !== 'ports' || !selectedPortId) return;
+    const input = portRefs.current[selectedPortId];
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }, [activeTab, selectedPortId]);
 
   if (!selected && !selectedCable) {
     return (
@@ -130,7 +147,7 @@ export function PropertiesPanel() {
           />
         </div>
 
-        <Tabs defaultValue="details" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="ports">Ports</TabsTrigger>
@@ -159,16 +176,34 @@ export function PropertiesPanel() {
             <div className="text-xs text-muted-foreground">
               {selected.ports.length} ports
             </div>
-            <div className="space-y-2">
-              {selected.ports.map((port) => (
-                <div key={port.id} className="flex justify-between text-xs">
-                  <span>{port.label}</span>
-                  <span className="text-muted-foreground">
-                    {PORT_TYPE_LABELS[port.type]}
-                    {port.speed ? ` · ${port.speed}` : ''}
-                  </span>
-                </div>
-              ))}
+            <div className="space-y-3">
+              {selected.ports.map((port) => {
+                const globalId = `${selected.instanceId}-${port.id}`;
+                const isSelected = selectedPortId === globalId;
+                return (
+                  <div
+                    key={port.id}
+                    className={`space-y-1 text-xs rounded-md p-2 ${isSelected ? 'bg-muted/70' : ''}`}
+                  >
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>{PORT_TYPE_LABELS[port.type]}</span>
+                      <span>{port.speed ? `${port.speed}` : ''}</span>
+                    </div>
+                    <Input
+                      value={port.label}
+                      ref={(el) => {
+                        portRefs.current[globalId] = el;
+                      }}
+                      onChange={(event) => {
+                        const nextPorts = selected.ports.map((item) =>
+                          item.id === port.id ? { ...item, label: event.target.value } : item
+                        );
+                        updateEquipment(selected.instanceId, { ports: nextPorts });
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </TabsContent>
         </Tabs>

@@ -7,6 +7,7 @@ interface UIState {
   selectedEquipmentId: string | null;
   selectedCableId: string | null;
   hoveredPortId: string | null;
+  selectedPortId: string | null;
   hoveredEquipmentId: string | null;
 
   // Sidebar state
@@ -28,6 +29,7 @@ interface UIState {
   selectEquipment: (id: string | null) => void;
   selectCable: (id: string | null) => void;
   setHoveredPort: (id: string | null) => void;
+  selectPort: (id: string | null) => void;
   setHoveredEquipment: (id: string | null) => void;
 
   // Sidebar actions
@@ -62,6 +64,7 @@ export const useUIStore = create<UIState>((set) => ({
   selectedEquipmentId: null,
   selectedCableId: null,
   hoveredPortId: null,
+  selectedPortId: null,
   hoveredEquipmentId: null,
   sidebarTab: 'catalog',
   cameraPosition: defaultCameraPosition,
@@ -78,6 +81,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({
       selectedEquipmentId: id,
       selectedCableId: null, // Clear cable selection when selecting equipment
+      selectedPortId: null,
     });
   },
 
@@ -85,11 +89,16 @@ export const useUIStore = create<UIState>((set) => ({
     set({
       selectedCableId: id,
       selectedEquipmentId: null, // Clear equipment selection when selecting cable
+      selectedPortId: null,
     });
   },
 
   setHoveredPort: (id: string | null) => {
     set({ hoveredPortId: id });
+  },
+
+  selectPort: (id: string | null) => {
+    set({ selectedPortId: id });
   },
 
   setHoveredEquipment: (id: string | null) => {
@@ -147,6 +156,7 @@ export const useUIStore = create<UIState>((set) => ({
     set({
       selectedEquipmentId: null,
       selectedCableId: null,
+      selectedPortId: null,
     });
   },
 }));

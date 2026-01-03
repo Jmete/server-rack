@@ -33,6 +33,8 @@ export function Port({
   const completeConnection = useConnectionStore((state) => state.completeConnection);
   const setCableType = useConnectionStore((state) => state.setCableType);
   const setHoveredPort = useUIStore((state) => state.setHoveredPort);
+  const selectPort = useUIStore((state) => state.selectPort);
+  const selectEquipment = useUIStore((state) => state.selectEquipment);
   const registerPort = usePortStore((state) => state.registerPort);
   const unregisterPort = usePortStore((state) => state.unregisterPort);
   const setPortPosition = usePortStore((state) => state.setPortPosition);
@@ -55,6 +57,9 @@ export function Port({
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+
+    selectEquipment(port.equipmentInstanceId);
+    selectPort(port.globalId);
 
     if (!connectionMode.active) return;
 
