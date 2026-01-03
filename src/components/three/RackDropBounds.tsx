@@ -14,11 +14,14 @@ const RACK_DEPTH = mmToScene(RACK_DEPTH_MM);
 
 export function RackDropBounds() {
   const rackSize = useRackStore((state) => state.rack.config.size);
+  const equipment = useRackStore((state) => state.equipment);
   const setRackScreenBounds = useUIStore((state) => state.setRackScreenBounds);
   const setRackSlotBounds = useUIStore((state) => state.setRackSlotBounds);
+  const setEquipmentScreenBounds = useUIStore((state) => state.setEquipmentScreenBounds);
   const { camera, size } = useThree();
   const lastBounds = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
   const lastSlotBounds = useRef<{ slotNumber: number; left: number; top: number; width: number; height: number }[] | null>(null);
+  const lastEquipmentBounds = useRef<{ instanceId: string; left: number; top: number; width: number; height: number }[] | null>(null);
 
   useFrame(() => {
     const slotsHeight = uToScene(rackSize);
@@ -99,6 +102,50 @@ export function RackDropBounds() {
     if (slotChanged) {
       lastSlotBounds.current = slotBounds;
       setRackSlotBounds(slotBounds);
+    }
+
+    const equipmentBounds = equipment.map((eq) => {
+      const bottomIndex = eq.slotPosition - 1;
+      const topIndex = eq.slotPosition - 1 + eq.heightU;
+      const bottomY = boundaryYs[Math.max(0, Math.min(boundaryYs.length - 1, bottomIndex))];
+      const topY = boundaryYs[Math.max(0, Math.min(boundaryYs.length - 1, topIndex))];
+      const yCenter = SLOT_START_OFFSET + (eq.slotPosition - 1 + eq.heightU / 2) * slotHeight;
+      const leftPoint = new THREE.Vector3(left, yCenter, z).project(camera);
+      const rightPoint = new THREE.Vector3(right, yCenter, z).project(camera);
+      const leftX = (leftPoint.x * 0.5 + 0.5) * size.width;
+      const rightX = (rightPoint.x * 0.5 + 0.5) * size.width;
+
+      return {
+        instanceId: eq.instanceId,
+        left: Math.min(leftX, rightX),
+        top: Math.min(bottomY, topY),
+        width: Math.max(0, Math.abs(rightX - leftX)),
+        height: Math.max(0, Math.abs(bottomY - topY)),
+      };
+    });
+
+    const prevEquipment = lastEquipmentBounds.current;
+    let equipmentChanged = !prevEquipment || prevEquipment.length !== equipmentBounds.length;
+    if (!equipmentChanged && prevEquipment) {
+      for (let i = 0; i < equipmentBounds.length; i++) {
+        const prevItem = prevEquipment[i];
+        const nextItem = equipmentBounds[i];
+        if (
+          prevItem.instanceId !== nextItem.instanceId ||
+          Math.abs(prevItem.left - nextItem.left) > 0.5 ||
+          Math.abs(prevItem.top - nextItem.top) > 0.5 ||
+          Math.abs(prevItem.width - nextItem.width) > 0.5 ||
+          Math.abs(prevItem.height - nextItem.height) > 0.5
+        ) {
+          equipmentChanged = true;
+          break;
+        }
+      }
+    }
+
+    if (equipmentChanged) {
+      lastEquipmentBounds.current = equipmentBounds;
+      setEquipmentScreenBounds(equipmentBounds);
     }
   });
 

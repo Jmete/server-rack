@@ -23,9 +23,16 @@ interface DragPayload {
   equipmentId: string;
 }
 
+interface DragRackPayload {
+  type: 'rack';
+  instanceId: string;
+  heightU: number;
+}
+
 export function DndProvider({ children }: DndProviderProps) {
   const addEquipment = useRackStore((state) => state.addEquipment);
   const canPlaceEquipment = useRackStore((state) => state.canPlaceEquipment);
+  const moveEquipment = useRackStore((state) => state.moveEquipment);
   const setIsDragging = useUIStore((state) => state.setIsDragging);
   const setDraggedEquipmentType = useUIStore((state) => state.setDraggedEquipmentType);
   const draggedEquipmentType = useUIStore((state) => state.draggedEquipmentType);
@@ -37,21 +44,31 @@ export function DndProvider({ children }: DndProviderProps) {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    const payload = event.active.data.current as DragPayload | undefined;
+    const payload = event.active.data.current as DragPayload | DragRackPayload | undefined;
+    setIsDragging(true);
     if (payload?.type === 'catalog') {
-      setIsDragging(true);
       setDraggedEquipmentType(payload.equipmentId);
+      return;
     }
+    setDraggedEquipmentType(null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const payload = event.active.data.current as DragPayload | undefined;
+    const payload = event.active.data.current as DragPayload | DragRackPayload | undefined;
     const overId = event.over?.id?.toString() ?? '';
 
     setIsDragging(false);
     setDraggedEquipmentType(null);
 
     if (!payload || payload.type !== 'catalog' || !overId.startsWith('slot-')) {
+      if (!payload || payload.type !== 'rack' || !overId.startsWith('slot-')) {
+        return;
+      }
+      const slotPosition = Number.parseInt(overId.replace('slot-', ''), 10);
+      if (!Number.isFinite(slotPosition)) return;
+      if (canPlaceEquipment(payload.heightU, slotPosition, payload.instanceId)) {
+        moveEquipment(payload.instanceId, slotPosition);
+      }
       return;
     }
 

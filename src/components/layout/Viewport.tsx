@@ -3,6 +3,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Scene } from '@/components/three/Scene';
 import { RackDropZones } from '@/components/dnd/RackDropZones';
+import { RackEquipmentOverlay } from '@/components/dnd/RackEquipmentOverlay';
 
 export function Viewport() {
   return (
@@ -13,6 +14,7 @@ export function Viewport() {
       >
         <Scene />
       </Canvas>
+      <RackEquipmentOverlay />
       <RackDropZones />
     </div>
   );

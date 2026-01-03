@@ -1,18 +1,18 @@
 'use client';
 
 import { useMemo, type CSSProperties } from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDndContext, useDroppable } from '@dnd-kit/core';
 import { getEquipmentById } from '@/constants';
 import { useRackStore, useUIStore } from '@/stores';
 
 interface RackSlotDropZoneProps {
   slotNumber: number;
-  canDrop: boolean;
+  highlight: 'valid' | 'invalid' | 'idle';
   isOccupied: boolean;
   style: CSSProperties;
 }
 
-function RackSlotDropZone({ slotNumber, canDrop, isOccupied, style }: RackSlotDropZoneProps) {
+function RackSlotDropZone({ slotNumber, highlight, isOccupied, style }: RackSlotDropZoneProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: `slot-${slotNumber}`,
     data: { slotNumber },
@@ -20,7 +20,14 @@ function RackSlotDropZone({ slotNumber, canDrop, isOccupied, style }: RackSlotDr
 
   const base = 'absolute transition-colors';
   const idle = isOccupied ? 'bg-zinc-900/20' : 'bg-transparent';
-  const state = isOver ? (canDrop ? 'bg-emerald-500/20' : 'bg-rose-500/20') : idle;
+  const state =
+    highlight === 'valid'
+      ? 'bg-emerald-500/20'
+      : highlight === 'invalid'
+      ? 'bg-rose-500/20'
+      : isOver
+      ? 'bg-emerald-500/10'
+      : idle;
 
   return <div ref={setNodeRef} className={`${base} ${state}`} style={style} />;
 }
@@ -31,11 +38,35 @@ export function RackDropZones() {
   const isDragging = useUIStore((state) => state.isDragging);
   const draggedEquipmentType = useUIStore((state) => state.draggedEquipmentType);
   const rackSlotBounds = useUIStore((state) => state.rackSlotBounds);
+  const { active, over } = useDndContext();
 
-  const draggedDefinition = useMemo(
-    () => (draggedEquipmentType ? getEquipmentById(draggedEquipmentType) : undefined),
-    [draggedEquipmentType]
-  );
+  const dragData = active?.data.current as
+    | { type: 'catalog'; equipmentId: string }
+    | { type: 'rack'; instanceId: string; heightU: number }
+    | undefined;
+
+  const draggedDefinition = useMemo(() => {
+    if (dragData?.type === 'catalog') {
+      return getEquipmentById(dragData.equipmentId);
+    }
+    if (draggedEquipmentType) {
+      return getEquipmentById(draggedEquipmentType);
+    }
+    return undefined;
+  }, [dragData, draggedEquipmentType]);
+
+  const draggedHeight = dragData?.type === 'rack'
+    ? dragData.heightU
+    : draggedDefinition?.heightU ?? 1;
+  const excludeInstanceId = dragData?.type === 'rack' ? dragData.instanceId : undefined;
+
+  const overSlotNumber = over?.id?.toString().startsWith('slot-')
+    ? Number.parseInt(over.id.toString().replace('slot-', ''), 10)
+    : null;
+  const canDropRange =
+    overSlotNumber && Number.isFinite(overSlotNumber)
+      ? canPlaceEquipment(draggedHeight, overSlotNumber, excludeInstanceId)
+      : false;
 
   if (!isDragging || !rackSlotBounds || rackSlotBounds.length === 0) {
     return null;
@@ -46,15 +77,17 @@ export function RackDropZones() {
       {rackSlotBounds.map((slotBounds) => {
         const slotNumber = slotBounds.slotNumber;
         const slot = rack.slots[slotNumber - 1];
-        const canDrop = draggedDefinition
-          ? canPlaceEquipment(draggedDefinition.heightU, slotNumber)
-          : false;
+        const inRange =
+          overSlotNumber !== null &&
+          slotNumber >= overSlotNumber &&
+          slotNumber < overSlotNumber + draggedHeight;
+        const highlight = inRange ? (canDropRange ? 'valid' : 'invalid') : 'idle';
 
         return (
           <RackSlotDropZone
             key={slotNumber}
             slotNumber={slotNumber}
-            canDrop={canDrop}
+            highlight={highlight}
             isOccupied={slot?.occupied ?? false}
             style={{
               left: slotBounds.left,
