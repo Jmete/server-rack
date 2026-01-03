@@ -12,11 +12,11 @@ export function Scene() {
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={1}
-        maxDistance={15}
+        minDistance={0.5}
+        maxDistance={30}
         minPolarAngle={0}
         maxPolarAngle={Math.PI / 2}
-        target={[0, 1, 0]}
+        target={[0, 0.9, 0]}
       />
 
       {/* Lighting */}
