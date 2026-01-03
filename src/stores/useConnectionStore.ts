@@ -4,9 +4,11 @@ import {
   CableType,
   CableColor,
   CABLE_COLORS,
+  canConnect,
   createCable,
   ConnectionMode,
 } from '@/types';
+import { usePortStore } from './usePortStore';
 
 interface ConnectionState {
   cables: Cable[];
@@ -67,24 +69,24 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       return null;
     }
 
-    // Check if connection already exists
-    const existingCable = state.cables.find(
-      (c) =>
-        (c.sourcePortId === connectionMode.sourcePortId && c.targetPortId === portId) ||
-        (c.sourcePortId === portId && c.targetPortId === connectionMode.sourcePortId)
-    );
-
-    if (existingCable) {
-      // Reset connection mode
-      set((state) => ({
-        connectionMode: {
-          ...state.connectionMode,
-          active: false,
-          sourcePortId: null,
-        },
-      }));
+    const portTypes = usePortStore.getState().types;
+    const sourceType = portTypes[connectionMode.sourcePortId];
+    const targetType = portTypes[portId];
+    if (!sourceType || !targetType) {
       return null;
     }
+
+    if (!canConnect(sourceType, targetType, connectionMode.cableType)) {
+      return null;
+    }
+
+    const filteredCables = state.cables.filter(
+      (c) =>
+        c.sourcePortId !== connectionMode.sourcePortId &&
+        c.targetPortId !== connectionMode.sourcePortId &&
+        c.sourcePortId !== portId &&
+        c.targetPortId !== portId
+    );
 
     // Create the cable
     const cable = createCable(
@@ -95,10 +97,10 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     );
 
     set((state) => ({
-      cables: [...state.cables, cable],
+      cables: [...filteredCables, cable],
       connectionMode: {
         ...state.connectionMode,
-        active: false,
+        active: true,
         sourcePortId: null,
       },
     }));

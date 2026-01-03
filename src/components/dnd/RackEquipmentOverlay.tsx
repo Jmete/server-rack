@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { useRackStore, useUIStore } from '@/stores';
+import { useConnectionStore, useRackStore, useUIStore } from '@/stores';
 
 interface RackEquipmentHandleProps {
   instanceId: string;
@@ -74,13 +74,14 @@ export function RackEquipmentOverlay() {
   const selectEquipment = useUIStore((state) => state.selectEquipment);
   const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
   const equipmentBounds = useUIStore((state) => state.equipmentScreenBounds);
+  const connectionActive = useConnectionStore((state) => state.connectionMode.active);
 
   const equipmentMap = useMemo(
     () => new Map(equipment.map((eq) => [eq.instanceId, eq])),
     [equipment]
   );
 
-  if (!equipmentBounds || equipmentBounds.length === 0) {
+  if (connectionActive || !equipmentBounds || equipmentBounds.length === 0) {
     return null;
   }
 

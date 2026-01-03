@@ -5,15 +5,17 @@ import { Rack } from './Rack';
 import { Equipment } from './Equipment';
 import { RackDropBounds } from './RackDropBounds';
 import { RackHoverHighlight } from './RackHoverHighlight';
+import { CableManager } from './cables/CableManager';
 import { useRackStore, useUIStore } from '@/stores';
 
 export function Scene() {
   const equipment = useRackStore((state) => state.equipment);
   const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
   const selectEquipment = useUIStore((state) => state.selectEquipment);
+  const clearSelection = useUIStore((state) => state.clearSelection);
 
   const handleBackgroundClick = () => {
-    selectEquipment(null);
+    clearSelection();
   };
 
   return (
@@ -83,6 +85,9 @@ export function Scene() {
           onClick={() => selectEquipment(eq.instanceId)}
         />
       ))}
+
+      {/* Cables */}
+      <CableManager />
     </>
   );
 }

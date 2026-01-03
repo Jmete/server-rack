@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RackConfig } from '@/components/panels/RackConfig';
 import { EquipmentCatalog } from '@/components/panels/EquipmentCatalog';
 import { PropertiesPanel } from '@/components/panels/PropertiesPanel';
+import { ConnectionsPanel } from '@/components/panels/ConnectionsPanel';
 
 export function Sidebar() {
   return (
@@ -36,16 +37,7 @@ export function Sidebar() {
         </TabsContent>
 
         <TabsContent value="connections" className="mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Cable Connections</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Manage cable connections between ports.
-              </p>
-            </CardContent>
-          </Card>
+          <ConnectionsPanel />
         </TabsContent>
 
         <TabsContent value="export" className="mt-4">

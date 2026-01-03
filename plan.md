@@ -357,7 +357,7 @@ server-rack/
 
 ### Section 8: Port-to-Port Connections (Basic Cables)
 
-**Status**: [ ] Not Started
+**Status**: [x] Complete
 
 **Goal**: Connect ports with cables
 
@@ -380,14 +380,14 @@ server-rack/
 
 **Test Criteria**:
 
-- [ ] "Connect" button activates connection mode
-- [ ] First port click highlights as source
-- [ ] Second port click creates cable
-- [ ] RJ45<->RJ45 allowed, RJ45<->SFP+ rejected
-- [ ] Cable color selectable (blue, yellow, red, green, orange, white)
-- [ ] Cables visible between ports
-- [ ] Connections listed in panel
-- [ ] Can delete connections
+- [x] "Connect" button activates connection mode
+- [x] First port click highlights as source
+- [x] Second port click creates cable
+- [x] RJ45<->RJ45 allowed, RJ45<->SFP+ rejected
+- [x] Cable color selectable (blue, yellow, red, green, orange, white)
+- [x] Cables visible between ports
+- [x] Connections listed in panel
+- [x] Can delete connections
 
 ---
 
@@ -541,3 +541,4 @@ interface Cable {
 | 2026-01-03 | Section 6 | Complete | Drag-and-drop catalog placement, rack reordering, multi-U hover, delete controls      |
 | 2026-01-03 | Section 7 | Complete | Properties panel, selection highlight, custom labels, port list                       |
 | 2026-01-03 | Section 6 | Complete | Added drag and drop re-arranging functionality.                                       |
+| 2026-01-03 | Section 8 | Complete | Connection mode, compatible port validation, selectable cables, cable rendering       |

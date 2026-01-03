@@ -9,6 +9,7 @@ import {
   createRackSlots,
   createEquipmentInstance,
 } from '@/types';
+import { useConnectionStore } from './useConnectionStore';
 
 interface RackState {
   rack: Rack;
@@ -110,6 +111,7 @@ export const useRackStore = create<RackState>((set, get) => ({
   },
 
   removeEquipment: (instanceId: string) => {
+    useConnectionStore.getState().removeCablesForEquipment(instanceId);
     set((state) => {
       const equipment = state.equipment.find((e) => e.instanceId === instanceId);
       if (!equipment) return state;
