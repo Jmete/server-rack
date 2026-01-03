@@ -65,12 +65,15 @@ export function USWProSwitch({ equipment, onClick, isSelected }: USWProSwitchPro
 
   // Port layout matching real USW Pro 48 PoE
   // 48 RJ45 ports: 24 on top row, 24 on bottom row
-  const portAreaStart = -FACEPLATE_WIDTH / 2 + mmToScene(55); // Start after display
-  const rj45Spacing = mmToScene(7.2); // Tighter spacing for 24 ports per row
+  const portAreaStart = -FACEPLATE_WIDTH / 2 + mmToScene(48); // Start after display
+  const rj45Spacing = mmToScene(15); // Wider spacing to span most of the faceplate
   const rowSpacing = mmToScene(10); // Vertical spacing between rows
+  const rj45Span = rj45Spacing * 23;
+  const rj45PanelWidth = rj45Span + mmToScene(24);
+  const rj45PanelCenterX = portAreaStart + rj45Span / 2;
 
   // SFP+ ports on far right - 2x2 grid
-  const sfpAreaStart = FACEPLATE_WIDTH / 2 - mmToScene(38);
+  const sfpAreaStart = FACEPLATE_WIDTH / 2 - mmToScene(26);
   const sfpSpacingX = mmToScene(14);
   const sfpSpacingY = mmToScene(10);
 
@@ -109,14 +112,14 @@ export function USWProSwitch({ equipment, onClick, isSelected }: USWProSwitchPro
       {/* === CENTER - RJ45 PORTS AREA === */}
 
       {/* Dark panel behind all RJ45 ports */}
-      <mesh position={[portAreaStart + mmToScene(90), 0, frontZ - mmToScene(0.5)]}>
-        <boxGeometry args={[mmToScene(185), HEIGHT * 0.72, mmToScene(2)]} />
+      <mesh position={[rj45PanelCenterX, 0, frontZ - mmToScene(0.5)]}>
+        <boxGeometry args={[rj45PanelWidth, HEIGHT * 0.72, mmToScene(2)]} />
         <meshStandardMaterial color="#2a2a2a" />
       </mesh>
 
       {/* Port number labels bar (above ports) */}
-      <mesh position={[portAreaStart + mmToScene(90), HEIGHT * 0.38, frontZ + 0.001]}>
-        <boxGeometry args={[mmToScene(180), mmToScene(4), mmToScene(0.5)]} />
+      <mesh position={[rj45PanelCenterX, HEIGHT * 0.38, frontZ + 0.001]}>
+        <boxGeometry args={[rj45PanelWidth - mmToScene(6), mmToScene(4), mmToScene(0.5)]} />
         <meshStandardMaterial color="#555555" />
       </mesh>
 
@@ -140,8 +143,8 @@ export function USWProSwitch({ equipment, onClick, isSelected }: USWProSwitchPro
         })}
 
       {/* LED indicator strip below ports (simulated) */}
-      <mesh position={[portAreaStart + mmToScene(90), -HEIGHT * 0.32, frontZ + 0.001]}>
-        <boxGeometry args={[mmToScene(175), mmToScene(3), mmToScene(0.5)]} />
+      <mesh position={[rj45PanelCenterX, -HEIGHT * 0.32, frontZ + 0.001]}>
+        <boxGeometry args={[rj45PanelWidth - mmToScene(12), mmToScene(3), mmToScene(0.5)]} />
         <meshStandardMaterial color="#1a1a1a" />
       </mesh>
 

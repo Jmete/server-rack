@@ -1,20 +1,23 @@
 # 3D Server Rack Configurator - Implementation Plan
 
 ## Project Overview
+
 A web-based 3D Server Rack Configurator with drag-and-drop equipment placement, port-to-port cable connections with realistic catenary physics, and export capabilities.
 
 ## Technology Stack
-| Category | Technology |
-|----------|------------|
-| Framework | Next.js (latest, App Router) |
-| 3D Rendering | @react-three/fiber, @react-three/drei |
-| UI Components | shadcn/ui |
-| State Management | Zustand |
-| Drag & Drop | @dnd-kit/core |
-| Cable Physics | Custom catenary math |
-| Export | html2canvas, jsPDF |
+
+| Category         | Technology                            |
+| ---------------- | ------------------------------------- |
+| Framework        | Next.js (latest, App Router)          |
+| 3D Rendering     | @react-three/fiber, @react-three/drei |
+| UI Components    | shadcn/ui                             |
+| State Management | Zustand                               |
+| Drag & Drop      | @dnd-kit/core                         |
+| Cable Physics    | Custom catenary math                  |
+| Export           | html2canvas, jsPDF                    |
 
 ## User Choices
+
 - **Save/Load**: Export/Import JSON files
 - **Cables**: Realistic catenary curves with gravity simulation
 - **Detail level**: Medium (clear ports, LEDs, displays)
@@ -100,25 +103,30 @@ server-rack/
 ## Equipment Specifications (Ubiquiti-based)
 
 ### UDM-Pro Router (1U)
+
 - **Dimensions**: 442.4mm x 285.6mm x 43.7mm
 - **Ports**: 8x RJ45 LAN (1G), 1x RJ45 WAN (1G), 2x SFP+ (10G)
 - **Features**: 1.3" color touchscreen display
 
 ### USW-Pro-48-POE Switch (1U)
+
 - **Dimensions**: 442.4mm x 399.6mm x 43.7mm
 - **Ports**: 48x RJ45 (2 rows, PoE+/PoE++), 4x SFP+ (10G)
 - **Features**: 1.3" touchscreen display
 
 ### 24-Port Patch Panel (1U)
+
 - **Dimensions**: 442.4mm x 50mm x ~44mm
 - **Ports**: 24x RJ45 keystone ports (single row)
 
 ### Rack-Mount UPS (2U)
+
 - **Dimensions**: 432mm x 438mm x 86mm
 - **Ports**: 6x IEC C13 outputs (rear)
 - **Features**: LCD display, status LEDs
 
 ### UK PDU (1U)
+
 - **Dimensions**: 483mm x 44.5mm x 44mm
 - **Ports**: 8x BS1363 UK outlets
 - **Features**: Power switch, power LED
@@ -128,11 +136,13 @@ server-rack/
 ## Implementation Sections
 
 ### Section 1: Project Setup & Basic 3D Scene
+
 **Status**: [x] Complete
 
 **Goal**: Establish project foundation with working 3D viewport
 
 **Implement**:
+
 - Initialize Next.js project with TypeScript, Tailwind CSS
 - Install: @react-three/fiber, @react-three/drei, zustand, shadcn/ui
 - Create AppLayout with 70/30 split panels
@@ -140,12 +150,14 @@ server-rack/
 - Lighting setup (ambient + directional)
 
 **Files**:
+
 - `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`
 - `src/components/layout/AppLayout.tsx`, `Viewport.tsx`, `Sidebar.tsx`
 - `src/components/three/Scene.tsx`
 - `src/components/three/controls/CameraControls.tsx`
 
 **Test Criteria**:
+
 - [x] App loads without errors at localhost:3001
 - [x] Split layout visible: 3D viewport (left), sidebar placeholder (right)
 - [x] 3D grid floor visible
@@ -155,23 +167,27 @@ server-rack/
 ---
 
 ### Section 2: Type Definitions & State Management
+
 **Status**: [x] Complete
 
 **Goal**: Define data structures and set up state stores
 
 **Implement**:
+
 - All TypeScript interfaces (Rack, Equipment, Port, Cable)
 - Zustand stores (useRackStore, useConnectionStore, useUIStore)
 - Constants for rack dimensions
 - Equipment catalog data structure
 
 **Files**:
+
 - `src/types/*.ts`
 - `src/stores/*.ts`
 - `src/constants/*.ts`
 - `src/lib/equipment-catalog.ts`
 
 **Test Criteria**:
+
 - [x] TypeScript compiles without errors
 - [x] Can log store state in console
 - [x] Default rack config initializes (42U, 19")
@@ -179,22 +195,26 @@ server-rack/
 ---
 
 ### Section 3: 3D Rack Model
+
 **Status**: [x] Complete
 
 **Goal**: Render configurable rack frame with U slots
 
 **Implement**:
+
 - 3D rack frame (19" standard, dark metal finish)
 - Configurable height (42U/48U selector in sidebar)
 - Visual U slot indicators with numbering
 - Rack rails on left and right sides
 
 **Files**:
+
 - `src/components/three/Rack.tsx`
 - `src/components/three/RackSlot.tsx`
 - `src/components/panels/RackConfig.tsx`
 
 **Test Criteria**:
+
 - [x] 3D rack displays with correct proportions
 - [x] U positions numbered 1-42 (or 1-48)
 - [x] Dropdown in sidebar changes rack size
@@ -204,11 +224,13 @@ server-rack/
 ---
 
 ### Section 4: First Equipment Model (UDM-Pro Router)
+
 **Status**: [x] Complete
 
 **Goal**: Create first equipment with ports
 
 **Implement**:
+
 - Base Equipment component
 - UDM-Pro Router 3D model (1U)
 - Port components (RJ45Port, SFPPort)
@@ -216,6 +238,7 @@ server-rack/
 - Test equipment placement at U position 1
 
 **Files**:
+
 - `src/components/three/Equipment.tsx`
 - `src/components/three/equipment/UDMProRouter.tsx`
 - `src/components/three/ports/Port.tsx`
@@ -223,6 +246,7 @@ server-rack/
 - `src/components/three/ports/SFPPort.tsx`
 
 **Test Criteria**:
+
 - [x] UDM-Pro renders in rack at position U1
 - [x] Display area visible on front panel
 - [x] 8 RJ45 LAN ports visible and distinguishable
@@ -233,11 +257,13 @@ server-rack/
 ---
 
 ### Section 5: Remaining Equipment Models
-**Status**: [ ] Not Started
+
+**Status**: [x] Complete
 
 **Goal**: Complete all 5 equipment types
 
 **Implement**:
+
 - USW-Pro-48-POE Switch (1U, 48 ports in 2 rows + 4 SFP+)
 - 24-Port Patch Panel (1U, 24 RJ45 ports)
 - Rack-Mount UPS (2U, LCD display, status LEDs)
@@ -245,6 +271,7 @@ server-rack/
 - PowerPort and UKOutlet components
 
 **Files**:
+
 - `src/components/three/equipment/USWProSwitch.tsx`
 - `src/components/three/equipment/PatchPanel.tsx`
 - `src/components/three/equipment/RackUPS.tsx`
@@ -253,21 +280,24 @@ server-rack/
 - `src/components/three/ports/UKOutlet.tsx`
 
 **Test Criteria**:
-- [ ] All 5 equipment types render correctly
-- [ ] Switch shows 48 ports in 2 rows of 24
-- [ ] UPS spans 2U height correctly
-- [ ] PDU shows UK-style rectangular outlets
-- [ ] Port types visually distinct (RJ45 vs SFP+ vs UK outlet)
-- [ ] Each equipment has correct port count
+
+- [x] All 5 equipment types render correctly
+- [x] Switch shows 48 ports in 2 rows of 24
+- [x] UPS spans 2U height correctly
+- [x] PDU shows UK-style rectangular outlets
+- [x] Port types visually distinct (RJ45 vs SFP+ vs UK outlet)
+- [x] Each equipment has correct port count
 
 ---
 
 ### Section 6: Equipment Catalog & Drag-and-Drop
+
 **Status**: [ ] Not Started
 
 **Goal**: Drag equipment from sidebar to rack
 
 **Implement**:
+
 - Equipment catalog panel with thumbnails/icons
 - @dnd-kit integration
 - Draggable catalog items
@@ -277,12 +307,14 @@ server-rack/
 - Remove equipment button
 
 **Files**:
+
 - `src/components/dnd/DndProvider.tsx`
 - `src/components/dnd/DraggableEquipment.tsx`
 - `src/components/panels/EquipmentCatalog.tsx`
 - `src/hooks/useEquipmentDrag.ts`
 
 **Test Criteria**:
+
 - [ ] Catalog shows all 5 equipment types with labels
 - [ ] Can drag equipment from catalog
 - [ ] Visual feedback during drag (ghost/preview)
@@ -294,11 +326,13 @@ server-rack/
 ---
 
 ### Section 7: Properties Panel & Equipment Selection
+
 **Status**: [ ] Not Started
 
 **Goal**: View and edit selected equipment
 
 **Implement**:
+
 - Click-to-select equipment in 3D view
 - Visual selection indicator (outline glow)
 - Properties panel showing equipment details
@@ -306,10 +340,12 @@ server-rack/
 - View port list with types/speeds
 
 **Files**:
+
 - `src/components/panels/PropertiesPanel.tsx`
 - Shadcn components: Card, Input, Label, Tabs
 
 **Test Criteria**:
+
 - [ ] Clicking equipment selects it
 - [ ] Selected equipment has visual highlight
 - [ ] Properties panel shows: name, model, U position
@@ -320,11 +356,13 @@ server-rack/
 ---
 
 ### Section 8: Port-to-Port Connections (Basic Cables)
+
 **Status**: [ ] Not Started
 
 **Goal**: Connect ports with cables
 
 **Implement**:
+
 - Connection mode toggle
 - Cable type selector (Ethernet Cat6, Fiber, Power)
 - Cable color picker
@@ -334,12 +372,14 @@ server-rack/
 - Connections panel listing all cables
 
 **Files**:
+
 - `src/components/three/cables/Cable.tsx`
 - `src/components/three/cables/CableManager.tsx`
 - `src/components/panels/ConnectionsPanel.tsx`
 - `src/hooks/usePortConnection.ts`
 
 **Test Criteria**:
+
 - [ ] "Connect" button activates connection mode
 - [ ] First port click highlights as source
 - [ ] Second port click creates cable
@@ -352,22 +392,26 @@ server-rack/
 ---
 
 ### Section 9: Realistic Cable Physics (Catenary)
+
 **Status**: [ ] Not Started
 
 **Goal**: Cables drape realistically
 
 **Implement**:
-- Catenary curve calculation (y = a * cosh(x/a))
+
+- Catenary curve calculation (y = a \* cosh(x/a))
 - Tube geometry along curve
 - Tension parameter (affects droop)
 - Basic cable routing (avoid equipment faces)
 - Smooth curve rendering (32+ segments)
 
 **Files**:
+
 - `src/lib/catenary.ts`
 - Update `src/components/three/cables/Cable.tsx`
 
 **Test Criteria**:
+
 - [ ] Cables sag naturally in the middle
 - [ ] Longer cables droop more
 - [ ] Cables render as smooth tubes (not jagged)
@@ -377,11 +421,13 @@ server-rack/
 ---
 
 ### Section 10: Export Functionality
+
 **Status**: [ ] Not Started
 
 **Goal**: Export rack configuration
 
 **Implement**:
+
 - JSON export/import (full rack config)
 - PNG screenshot export
 - PDF document with rack diagram
@@ -389,11 +435,13 @@ server-rack/
 - Export panel UI with buttons
 
 **Files**:
+
 - `src/lib/export.ts`
 - `src/components/panels/ExportPanel.tsx`
 - `src/hooks/useExport.ts`
 
 **Test Criteria**:
+
 - [ ] "Export JSON" downloads .json file
 - [ ] "Import JSON" restores rack state
 - [ ] "Export PNG" captures 3D view as image
@@ -418,7 +466,7 @@ interface Rack {
 // Equipment
 interface Equipment {
   instanceId: string;
-  type: 'router' | 'switch' | 'patch-panel' | 'ups' | 'pdu';
+  type: "router" | "switch" | "patch-panel" | "ups" | "pdu";
   name: string;
   model: string;
   heightU: number;
@@ -430,16 +478,16 @@ interface Equipment {
 // Port
 interface Port {
   id: string;
-  type: 'rj45-lan' | 'rj45-wan' | 'sfp-plus' | 'power-iec' | 'uk-outlet';
+  type: "rj45-lan" | "rj45-wan" | "sfp-plus" | "power-iec" | "uk-outlet";
   label: string;
-  speed?: '1G' | '10G' | 'power';
+  speed?: "1G" | "10G" | "power";
   connectedTo: string | null;
 }
 
 // Cable
 interface Cable {
   id: string;
-  type: 'ethernet-cat6' | 'fiber-lc' | 'power-iec';
+  type: "ethernet-cat6" | "fiber-lc" | "power-iec";
   color: string;
   sourcePortId: string;
   targetPortId: string;
@@ -472,6 +520,7 @@ interface Cable {
 ---
 
 ## Critical Files (Priority Order)
+
 1. `src/stores/useRackStore.ts` - Central state for all rack data
 2. `src/components/three/Rack.tsx` - 3D rack rendering
 3. `src/components/three/Equipment.tsx` - Equipment factory
@@ -482,9 +531,9 @@ interface Cable {
 
 ## Progress Log
 
-| Date | Section | Status | Notes |
-|------|---------|--------|-------|
-| 2026-01-03 | Section 1 | Complete | Next.js + R3F + shadcn setup, 70/30 layout, 3D scene with grid |
-| 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog |
-| 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance |
+| Date       | Section   | Status   | Notes                                                               |
+| ---------- | --------- | -------- | ------------------------------------------------------------------- |
+| 2026-01-03 | Section 1 | Complete | Next.js + R3F + shadcn setup, 70/30 layout, 3D scene with grid      |
+| 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog                 |
+| 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance    |
 | 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add |
