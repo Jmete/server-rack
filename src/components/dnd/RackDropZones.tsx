@@ -65,27 +65,34 @@ export function RackDropZones() {
   const overSlotNumber = over?.id?.toString().startsWith('slot-')
     ? Number.parseInt(over.id.toString().replace('slot-', ''), 10)
     : null;
+  const overTarget =
+    overSlotNumber && Number.isFinite(overSlotNumber) ? getEquipmentAtSlot(overSlotNumber) : undefined;
+  const isSwapTarget =
+    dragData?.type === 'rack' &&
+    overTarget &&
+    overTarget.instanceId !== dragData.instanceId;
+  const intendedStart = isSwapTarget ? overTarget?.slotPosition ?? null : overSlotNumber;
+
   let canDropRange = false;
-  if (overSlotNumber && Number.isFinite(overSlotNumber)) {
-    const canMoveDirect = canPlaceEquipment(draggedHeight, overSlotNumber, excludeInstanceId);
+  if (intendedStart && Number.isFinite(intendedStart)) {
+    const canMoveDirect = canPlaceEquipment(draggedHeight, intendedStart, excludeInstanceId);
     if (canMoveDirect) {
       canDropRange = true;
-    } else if (dragData?.type === 'rack' && sourceSlot !== null) {
-      const target = getEquipmentAtSlot(overSlotNumber);
-      if (target && target.instanceId !== dragData.instanceId) {
+    } else if (dragData?.type === 'rack' && sourceSlot !== null && overTarget) {
+      if (overTarget.instanceId !== dragData.instanceId) {
         const dragRange = {
-          start: overSlotNumber,
-          end: overSlotNumber + draggedHeight - 1,
+          start: intendedStart,
+          end: intendedStart + draggedHeight - 1,
         };
         const targetRange = {
           start: sourceSlot,
-          end: sourceSlot + target.heightU - 1,
+          end: sourceSlot + overTarget.heightU - 1,
         };
         const rangesOverlap = !(dragRange.end < targetRange.start || targetRange.end < dragRange.start);
         if (!rangesOverlap) {
-          const excludeIds = [dragData.instanceId, target.instanceId];
-          const canMoveDragged = canPlaceEquipment(draggedHeight, overSlotNumber, excludeIds);
-          const canMoveTarget = canPlaceEquipment(target.heightU, sourceSlot, excludeIds);
+          const excludeIds = [dragData.instanceId, overTarget.instanceId];
+          const canMoveDragged = canPlaceEquipment(draggedHeight, intendedStart, excludeIds);
+          const canMoveTarget = canPlaceEquipment(overTarget.heightU, sourceSlot, excludeIds);
           canDropRange = canMoveDragged && canMoveTarget;
         }
       }
@@ -102,9 +109,9 @@ export function RackDropZones() {
         const slotNumber = slotBounds.slotNumber;
         const slot = rack.slots[slotNumber - 1];
         const inRange =
-          overSlotNumber !== null &&
-          slotNumber >= overSlotNumber &&
-          slotNumber < overSlotNumber + draggedHeight;
+          intendedStart !== null &&
+          slotNumber >= intendedStart &&
+          slotNumber < intendedStart + draggedHeight;
         const highlight = inRange ? (canDropRange ? 'valid' : 'invalid') : 'idle';
 
         return (

@@ -24,6 +24,7 @@ interface RackState {
   removeEquipment: (instanceId: string) => void;
   moveEquipment: (instanceId: string, newPosition: number) => boolean;
   updateEquipment: (instanceId: string, updates: Partial<Equipment>) => void;
+  swapEquipment: (firstId: string, secondId: string) => boolean;
 
   // Utility actions
   clearRack: () => void;
@@ -189,6 +190,78 @@ export const useRackStore = create<RackState>((set, get) => ({
         e.instanceId === instanceId ? { ...e, ...updates } : e
       ),
     }));
+  },
+
+  swapEquipment: (firstId: string, secondId: string) => {
+    const state = get();
+    if (firstId === secondId) return false;
+
+    const first = state.equipment.find((e) => e.instanceId === firstId);
+    const second = state.equipment.find((e) => e.instanceId === secondId);
+    if (!first || !second) return false;
+
+    const firstNewPosition = second.slotPosition;
+    const secondNewPosition = first.slotPosition;
+    const firstRange = {
+      start: firstNewPosition,
+      end: firstNewPosition + first.heightU - 1,
+    };
+    const secondRange = {
+      start: secondNewPosition,
+      end: secondNewPosition + second.heightU - 1,
+    };
+
+    const rangesOverlap = !(firstRange.end < secondRange.start || secondRange.end < firstRange.start);
+    if (rangesOverlap) return false;
+
+    const excludeIds = [first.instanceId, second.instanceId];
+    if (!state.canPlaceEquipment(first.heightU, firstNewPosition, excludeIds)) return false;
+    if (!state.canPlaceEquipment(second.heightU, secondNewPosition, excludeIds)) return false;
+
+    set((state) => {
+      const newSlots = [...state.rack.slots];
+
+      for (let i = 0; i < first.heightU; i++) {
+        const slotIndex = first.slotPosition - 1 + i;
+        if (slotIndex < newSlots.length) {
+          newSlots[slotIndex] = { ...newSlots[slotIndex], occupied: false, equipmentId: null };
+        }
+      }
+      for (let i = 0; i < second.heightU; i++) {
+        const slotIndex = second.slotPosition - 1 + i;
+        if (slotIndex < newSlots.length) {
+          newSlots[slotIndex] = { ...newSlots[slotIndex], occupied: false, equipmentId: null };
+        }
+      }
+
+      for (let i = 0; i < first.heightU; i++) {
+        const slotIndex = firstNewPosition - 1 + i;
+        if (slotIndex < newSlots.length) {
+          newSlots[slotIndex] = { ...newSlots[slotIndex], occupied: true, equipmentId: first.instanceId };
+        }
+      }
+      for (let i = 0; i < second.heightU; i++) {
+        const slotIndex = secondNewPosition - 1 + i;
+        if (slotIndex < newSlots.length) {
+          newSlots[slotIndex] = { ...newSlots[slotIndex], occupied: true, equipmentId: second.instanceId };
+        }
+      }
+
+      return {
+        rack: { ...state.rack, slots: newSlots },
+        equipment: state.equipment.map((e) => {
+          if (e.instanceId === first.instanceId) {
+            return { ...e, slotPosition: firstNewPosition };
+          }
+          if (e.instanceId === second.instanceId) {
+            return { ...e, slotPosition: secondNewPosition };
+          }
+          return e;
+        }),
+      };
+    });
+
+    return true;
   },
 
   clearRack: () => {

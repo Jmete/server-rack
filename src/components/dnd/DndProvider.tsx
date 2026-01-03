@@ -3,10 +3,12 @@
 import { ReactNode } from 'react';
 import {
   DndContext,
+  type CollisionDetection,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  pointerWithin,
   rectIntersection,
   useSensor,
   useSensors,
@@ -34,6 +36,7 @@ export function DndProvider({ children }: DndProviderProps) {
   const addEquipment = useRackStore((state) => state.addEquipment);
   const canPlaceEquipment = useRackStore((state) => state.canPlaceEquipment);
   const moveEquipment = useRackStore((state) => state.moveEquipment);
+  const swapEquipment = useRackStore((state) => state.swapEquipment);
   const getEquipmentAtSlot = useRackStore((state) => state.getEquipmentAtSlot);
   const setIsDragging = useUIStore((state) => state.setIsDragging);
   const setDraggedEquipmentType = useUIStore((state) => state.setDraggedEquipmentType);
@@ -68,18 +71,25 @@ export function DndProvider({ children }: DndProviderProps) {
       }
       const slotPosition = Number.parseInt(overId.replace('slot-', ''), 10);
       if (!Number.isFinite(slotPosition)) return;
-      if (slotPosition === payload.slotPosition) return;
-      if (canPlaceEquipment(payload.heightU, slotPosition, payload.instanceId)) {
-        moveEquipment(payload.instanceId, slotPosition);
+
+      const targetAtOver = getEquipmentAtSlot(slotPosition);
+      const dropSlot =
+        targetAtOver && targetAtOver.instanceId !== payload.instanceId
+          ? targetAtOver.slotPosition
+          : slotPosition;
+
+      if (dropSlot === payload.slotPosition) return;
+      if (canPlaceEquipment(payload.heightU, dropSlot, payload.instanceId)) {
+        moveEquipment(payload.instanceId, dropSlot);
         return;
       }
 
-      const target = getEquipmentAtSlot(slotPosition);
+      const target = targetAtOver;
       if (!target || target.instanceId === payload.instanceId) return;
 
       const dragRange = {
-        start: slotPosition,
-        end: slotPosition + payload.heightU - 1,
+        start: dropSlot,
+        end: dropSlot + payload.heightU - 1,
       };
       const targetRange = {
         start: payload.slotPosition,
@@ -93,8 +103,7 @@ export function DndProvider({ children }: DndProviderProps) {
       const canMoveTarget = canPlaceEquipment(target.heightU, payload.slotPosition, excludeIds);
 
       if (canMoveDragged && canMoveTarget) {
-        moveEquipment(payload.instanceId, slotPosition);
-        moveEquipment(target.instanceId, payload.slotPosition);
+        swapEquipment(payload.instanceId, target.instanceId);
       }
       return;
     }
@@ -119,10 +128,21 @@ export function DndProvider({ children }: DndProviderProps) {
     ? getEquipmentById(draggedEquipmentType)?.name ?? 'Equipment'
     : null;
 
+  const collisionDetection: CollisionDetection = (args) => {
+    const payload = args.active?.data?.current as DragPayload | DragRackPayload | undefined;
+    if (payload?.type === 'rack') {
+      const pointerHits = pointerWithin(args);
+      if (pointerHits.length > 0) {
+        return pointerHits;
+      }
+    }
+    return rectIntersection(args);
+  };
+
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={rectIntersection}
+      collisionDetection={collisionDetection}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
