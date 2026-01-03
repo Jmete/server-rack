@@ -27,7 +27,11 @@ interface RackState {
 
   // Utility actions
   clearRack: () => void;
-  canPlaceEquipment: (heightU: number, slotPosition: number, excludeInstanceId?: string) => boolean;
+  canPlaceEquipment: (
+    heightU: number,
+    slotPosition: number,
+    excludeInstanceIds?: string | string[]
+  ) => boolean;
   getEquipmentAtSlot: (slotPosition: number) => Equipment | undefined;
 
   // Import/Export
@@ -197,9 +201,14 @@ export const useRackStore = create<RackState>((set, get) => ({
     }));
   },
 
-  canPlaceEquipment: (heightU: number, slotPosition: number, excludeInstanceId?: string) => {
+  canPlaceEquipment: (heightU: number, slotPosition: number, excludeInstanceIds?: string | string[]) => {
     const state = get();
     const { rack } = state;
+    const excludeList = Array.isArray(excludeInstanceIds)
+      ? excludeInstanceIds
+      : excludeInstanceIds
+      ? [excludeInstanceIds]
+      : [];
 
     // Check bounds
     if (slotPosition < 1 || slotPosition + heightU - 1 > rack.config.size) {
@@ -209,7 +218,7 @@ export const useRackStore = create<RackState>((set, get) => ({
     // Check for overlapping equipment
     for (let i = 0; i < heightU; i++) {
       const slot = rack.slots[slotPosition - 1 + i];
-      if (slot.occupied && slot.equipmentId !== excludeInstanceId) {
+      if (slot.occupied && !excludeList.includes(slot.equipmentId ?? '')) {
         return false;
       }
     }

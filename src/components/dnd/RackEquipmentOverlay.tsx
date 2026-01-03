@@ -8,6 +8,7 @@ interface RackEquipmentHandleProps {
   instanceId: string;
   name: string;
   heightU: number;
+  slotPosition: number;
   bounds: { left: number; top: number; width: number; height: number };
   isSelected: boolean;
   onSelect: () => void;
@@ -18,6 +19,7 @@ function RackEquipmentHandle({
   instanceId,
   name,
   heightU,
+  slotPosition,
   bounds,
   isSelected,
   onSelect,
@@ -29,22 +31,24 @@ function RackEquipmentHandle({
       type: 'rack',
       instanceId,
       heightU,
+      slotPosition,
     },
   });
 
   const { 'aria-describedby': _ariaDescribedBy, ...safeAttributes } = attributes;
+  const { onPointerDown, ...restListeners } = listeners;
 
   return (
     <div
       ref={setNodeRef}
       {...safeAttributes}
-      {...listeners}
-      className={`absolute group ${isDragging ? 'opacity-50' : ''}`}
-      style={{ ...bounds, touchAction: 'none', pointerEvents: 'auto' }}
+      {...restListeners}
       onPointerDown={(event) => {
-        event.stopPropagation();
+        onPointerDown?.(event);
         onSelect();
       }}
+      className={`absolute group pointer-events-auto cursor-grab ${isDragging ? 'opacity-50' : ''}`}
+      style={{ ...bounds, touchAction: 'none', pointerEvents: 'auto' }}
       title={name}
     >
       {isSelected && (
@@ -92,6 +96,7 @@ export function RackEquipmentOverlay() {
             instanceId={eq.instanceId}
             name={eq.name}
             heightU={eq.heightU}
+            slotPosition={eq.slotPosition}
             bounds={bounds}
             isSelected={eq.instanceId === selectedEquipmentId}
             onSelect={() => selectEquipment(eq.instanceId)}

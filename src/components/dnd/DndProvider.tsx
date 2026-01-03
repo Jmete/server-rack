@@ -27,12 +27,14 @@ interface DragRackPayload {
   type: 'rack';
   instanceId: string;
   heightU: number;
+  slotPosition: number;
 }
 
 export function DndProvider({ children }: DndProviderProps) {
   const addEquipment = useRackStore((state) => state.addEquipment);
   const canPlaceEquipment = useRackStore((state) => state.canPlaceEquipment);
   const moveEquipment = useRackStore((state) => state.moveEquipment);
+  const getEquipmentAtSlot = useRackStore((state) => state.getEquipmentAtSlot);
   const setIsDragging = useUIStore((state) => state.setIsDragging);
   const setDraggedEquipmentType = useUIStore((state) => state.setDraggedEquipmentType);
   const draggedEquipmentType = useUIStore((state) => state.draggedEquipmentType);
@@ -66,8 +68,33 @@ export function DndProvider({ children }: DndProviderProps) {
       }
       const slotPosition = Number.parseInt(overId.replace('slot-', ''), 10);
       if (!Number.isFinite(slotPosition)) return;
+      if (slotPosition === payload.slotPosition) return;
       if (canPlaceEquipment(payload.heightU, slotPosition, payload.instanceId)) {
         moveEquipment(payload.instanceId, slotPosition);
+        return;
+      }
+
+      const target = getEquipmentAtSlot(slotPosition);
+      if (!target || target.instanceId === payload.instanceId) return;
+
+      const dragRange = {
+        start: slotPosition,
+        end: slotPosition + payload.heightU - 1,
+      };
+      const targetRange = {
+        start: payload.slotPosition,
+        end: payload.slotPosition + target.heightU - 1,
+      };
+      const rangesOverlap = !(dragRange.end < targetRange.start || targetRange.end < dragRange.start);
+      if (rangesOverlap) return;
+
+      const excludeIds = [payload.instanceId, target.instanceId];
+      const canMoveDragged = canPlaceEquipment(payload.heightU, slotPosition, excludeIds);
+      const canMoveTarget = canPlaceEquipment(target.heightU, payload.slotPosition, excludeIds);
+
+      if (canMoveDragged && canMoveTarget) {
+        moveEquipment(payload.instanceId, slotPosition);
+        moveEquipment(target.instanceId, payload.slotPosition);
       }
       return;
     }

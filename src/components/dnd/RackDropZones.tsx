@@ -35,6 +35,7 @@ function RackSlotDropZone({ slotNumber, highlight, isOccupied, style }: RackSlot
 export function RackDropZones() {
   const rack = useRackStore((state) => state.rack);
   const canPlaceEquipment = useRackStore((state) => state.canPlaceEquipment);
+  const getEquipmentAtSlot = useRackStore((state) => state.getEquipmentAtSlot);
   const isDragging = useUIStore((state) => state.isDragging);
   const draggedEquipmentType = useUIStore((state) => state.draggedEquipmentType);
   const rackSlotBounds = useUIStore((state) => state.rackSlotBounds);
@@ -59,14 +60,37 @@ export function RackDropZones() {
     ? dragData.heightU
     : draggedDefinition?.heightU ?? 1;
   const excludeInstanceId = dragData?.type === 'rack' ? dragData.instanceId : undefined;
+  const sourceSlot = dragData?.type === 'rack' ? dragData.slotPosition : null;
 
   const overSlotNumber = over?.id?.toString().startsWith('slot-')
     ? Number.parseInt(over.id.toString().replace('slot-', ''), 10)
     : null;
-  const canDropRange =
-    overSlotNumber && Number.isFinite(overSlotNumber)
-      ? canPlaceEquipment(draggedHeight, overSlotNumber, excludeInstanceId)
-      : false;
+  let canDropRange = false;
+  if (overSlotNumber && Number.isFinite(overSlotNumber)) {
+    const canMoveDirect = canPlaceEquipment(draggedHeight, overSlotNumber, excludeInstanceId);
+    if (canMoveDirect) {
+      canDropRange = true;
+    } else if (dragData?.type === 'rack' && sourceSlot !== null) {
+      const target = getEquipmentAtSlot(overSlotNumber);
+      if (target && target.instanceId !== dragData.instanceId) {
+        const dragRange = {
+          start: overSlotNumber,
+          end: overSlotNumber + draggedHeight - 1,
+        };
+        const targetRange = {
+          start: sourceSlot,
+          end: sourceSlot + target.heightU - 1,
+        };
+        const rangesOverlap = !(dragRange.end < targetRange.start || targetRange.end < dragRange.start);
+        if (!rangesOverlap) {
+          const excludeIds = [dragData.instanceId, target.instanceId];
+          const canMoveDragged = canPlaceEquipment(draggedHeight, overSlotNumber, excludeIds);
+          const canMoveTarget = canPlaceEquipment(target.heightU, sourceSlot, excludeIds);
+          canDropRange = canMoveDragged && canMoveTarget;
+        }
+      }
+    }
+  }
 
   if (!isDragging || !rackSlotBounds || rackSlotBounds.length === 0) {
     return null;
