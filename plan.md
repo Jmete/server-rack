@@ -531,12 +531,13 @@ interface Cable {
 
 ## Progress Log
 
-| Date       | Section   | Status   | Notes                                                               |
-| ---------- | --------- | -------- | ------------------------------------------------------------------- |
-| 2026-01-03 | Section 1 | Complete | Next.js + R3F + shadcn setup, 70/30 layout, 3D scene with grid      |
-| 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog                 |
-| 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance    |
-| 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add |
+| Date       | Section   | Status   | Notes                                                                                 |
+| ---------- | --------- | -------- | ------------------------------------------------------------------------------------- |
+| 2026-01-03 | Section 1 | Complete | Next.js + R3F + shadcn setup, 70/30 layout, 3D scene with grid                        |
+| 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog                                   |
+| 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance                      |
+| 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add                   |
 | 2026-01-03 | Section 5 | Complete | Remaining equipment models added (USW-Pro-48-POE, patch panel, UPS, PDU, power ports) |
-| 2026-01-03 | Section 6 | Complete | Drag-and-drop catalog placement, rack reordering, multi-U hover, delete controls |
-| 2026-01-03 | Section 7 | Complete | Properties panel, selection highlight, custom labels, port list |
+| 2026-01-03 | Section 6 | Complete | Drag-and-drop catalog placement, rack reordering, multi-U hover, delete controls      |
+| 2026-01-03 | Section 7 | Complete | Properties panel, selection highlight, custom labels, port list                       |
+| 2026-01-03 | Section 6 | Complete | Added drag and drop re-arranging functionality.                                       |

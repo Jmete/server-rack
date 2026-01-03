@@ -22,6 +22,7 @@ interface UIState {
   rackScreenBounds: { left: number; top: number; width: number; height: number } | null;
   rackSlotBounds: { slotNumber: number; left: number; top: number; width: number; height: number }[] | null;
   equipmentScreenBounds: { instanceId: string; left: number; top: number; width: number; height: number }[] | null;
+  rackHover: { start: number; count: number; valid: boolean } | null;
 
   // Selection actions
   selectEquipment: (id: string | null) => void;
@@ -47,6 +48,7 @@ interface UIState {
   setEquipmentScreenBounds: (
     bounds: { instanceId: string; left: number; top: number; width: number; height: number }[] | null
   ) => void;
+  setRackHover: (hover: { start: number; count: number; valid: boolean } | null) => void;
 
   // Utility
   clearSelection: () => void;
@@ -69,6 +71,7 @@ export const useUIStore = create<UIState>((set) => ({
   rackScreenBounds: null,
   rackSlotBounds: null,
   equipmentScreenBounds: null,
+  rackHover: null,
 
   // Selection actions
   selectEquipment: (id: string | null) => {
@@ -133,6 +136,10 @@ export const useUIStore = create<UIState>((set) => ({
 
   setEquipmentScreenBounds: (bounds) => {
     set({ equipmentScreenBounds: bounds });
+  },
+
+  setRackHover: (hover) => {
+    set({ rackHover: hover });
   },
 
   // Utility
