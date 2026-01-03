@@ -19,6 +19,8 @@ interface UIState {
   // Drag state
   isDragging: boolean;
   draggedEquipmentType: string | null;
+  rackScreenBounds: { left: number; top: number; width: number; height: number } | null;
+  rackSlotBounds: { slotNumber: number; left: number; top: number; width: number; height: number }[] | null;
 
   // Selection actions
   selectEquipment: (id: string | null) => void;
@@ -37,6 +39,10 @@ interface UIState {
   // Drag actions
   setIsDragging: (isDragging: boolean) => void;
   setDraggedEquipmentType: (type: string | null) => void;
+  setRackScreenBounds: (bounds: { left: number; top: number; width: number; height: number } | null) => void;
+  setRackSlotBounds: (
+    bounds: { slotNumber: number; left: number; top: number; width: number; height: number }[] | null
+  ) => void;
 
   // Utility
   clearSelection: () => void;
@@ -56,6 +62,8 @@ export const useUIStore = create<UIState>((set) => ({
   cameraTarget: defaultCameraTarget,
   isDragging: false,
   draggedEquipmentType: null,
+  rackScreenBounds: null,
+  rackSlotBounds: null,
 
   // Selection actions
   selectEquipment: (id: string | null) => {
@@ -108,6 +116,14 @@ export const useUIStore = create<UIState>((set) => ({
 
   setDraggedEquipmentType: (type: string | null) => {
     set({ draggedEquipmentType: type });
+  },
+
+  setRackScreenBounds: (bounds) => {
+    set({ rackScreenBounds: bounds });
+  },
+
+  setRackSlotBounds: (bounds) => {
+    set({ rackSlotBounds: bounds });
   },
 
   // Utility

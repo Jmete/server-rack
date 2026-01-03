@@ -3,6 +3,7 @@
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import { Rack } from './Rack';
 import { Equipment } from './Equipment';
+import { RackDropBounds } from './RackDropBounds';
 import { useRackStore, useUIStore } from '@/stores';
 
 export function Scene() {
@@ -69,6 +70,7 @@ export function Scene() {
 
       {/* Server Rack */}
       <Rack />
+      <RackDropBounds />
 
       {/* Equipment in Rack */}
       {equipment.map((eq) => (

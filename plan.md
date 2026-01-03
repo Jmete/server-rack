@@ -292,7 +292,7 @@ server-rack/
 
 ### Section 6: Equipment Catalog & Drag-and-Drop
 
-**Status**: [ ] Not Started
+**Status**: [~] In Progress
 
 **Goal**: Drag equipment from sidebar to rack
 
