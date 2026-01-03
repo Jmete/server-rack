@@ -393,7 +393,7 @@ server-rack/
 
 ### Section 9: Realistic Cable Physics (Catenary)
 
-**Status**: [ ] Not Started
+**Status**: [~] In Progress
 
 **Goal**: Cables drape realistically
 

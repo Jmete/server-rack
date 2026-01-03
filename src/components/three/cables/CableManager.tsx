@@ -12,7 +12,6 @@ export function CableManager() {
   const selectCable = useUIStore((state) => state.selectCable);
 
   const resolved = useMemo(() => {
-    const frontOffset = mmToScene(2.5);
     return cables
       .map((cable) => {
         const start = portPositions[cable.sourcePortId];
@@ -21,12 +20,15 @@ export function CableManager() {
         return {
           id: cable.id,
           color: cable.color.hex,
-          start: [start[0], start[1], start[2] + frontOffset],
-          end: [end[0], end[1], end[2] + frontOffset],
+          start,
+          end,
         };
       })
       .filter(Boolean) as { id: string; color: string; start: [number, number, number]; end: [number, number, number] }[];
   }, [cables, portPositions]);
+
+  const cableTension = mmToScene(120);
+  const cableFrontOffset = mmToScene(6);
 
   return (
     <group>
@@ -39,6 +41,8 @@ export function CableManager() {
           color={cable.color}
           isSelected={cable.id === selectedCableId}
           onSelect={selectCable}
+          tension={cableTension}
+          frontOffset={cableFrontOffset}
         />
       ))}
     </group>
