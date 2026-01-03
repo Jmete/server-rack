@@ -327,7 +327,7 @@ server-rack/
 
 ### Section 7: Properties Panel & Equipment Selection
 
-**Status**: [ ] Not Started
+**Status**: [~] In Progress
 
 **Goal**: View and edit selected equipment
 

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RackConfig } from '@/components/panels/RackConfig';
 import { EquipmentCatalog } from '@/components/panels/EquipmentCatalog';
+import { PropertiesPanel } from '@/components/panels/PropertiesPanel';
 
 export function Sidebar() {
   return (
@@ -31,16 +32,7 @@ export function Sidebar() {
         </TabsContent>
 
         <TabsContent value="properties" className="mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Properties</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Select an item to view its properties.
-              </p>
-            </CardContent>
-          </Card>
+          <PropertiesPanel />
         </TabsContent>
 
         <TabsContent value="connections" className="mt-4">
