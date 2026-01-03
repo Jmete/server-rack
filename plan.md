@@ -204,7 +204,7 @@ server-rack/
 ---
 
 ### Section 4: First Equipment Model (UDM-Pro Router)
-**Status**: [ ] Not Started
+**Status**: [x] Complete
 
 **Goal**: Create first equipment with ports
 
@@ -223,12 +223,12 @@ server-rack/
 - `src/components/three/ports/SFPPort.tsx`
 
 **Test Criteria**:
-- [ ] UDM-Pro renders in rack at position U1
-- [ ] Display area visible on front panel
-- [ ] 8 RJ45 LAN ports visible and distinguishable
-- [ ] 1 RJ45 WAN port visible (different color indicator)
-- [ ] 2 SFP+ ports visible (different shape)
-- [ ] Ports change color on hover
+- [x] UDM-Pro renders in rack at position U1
+- [x] Display area visible on front panel
+- [x] 8 RJ45 LAN ports visible and distinguishable
+- [x] 1 RJ45 WAN port visible (different color indicator)
+- [x] 2 SFP+ ports visible (different shape)
+- [x] Ports change color on hover
 
 ---
 
@@ -487,3 +487,4 @@ interface Cable {
 | 2026-01-03 | Section 1 | Complete | Next.js + R3F + shadcn setup, 70/30 layout, 3D scene with grid |
 | 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog |
 | 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance |
+| 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add |

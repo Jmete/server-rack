@@ -4,13 +4,16 @@ import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRackStore } from '@/stores';
-import { RACK_CONSTANTS, mmToScene, uToScene, RACK_COLORS } from '@/constants';
+import { RACK_CONSTANTS, mmToScene, uToScene, RACK_COLORS, FRAME_THICKNESS_MM, RACK_DEPTH_MM } from '@/constants';
 
 // Rack frame dimensions
-const FRAME_THICKNESS = mmToScene(40); // 40mm thick frame
+const FRAME_THICKNESS = mmToScene(FRAME_THICKNESS_MM);
 const RAIL_WIDTH = mmToScene(RACK_CONSTANTS.RAIL_WIDTH_MM);
 const RACK_WIDTH = mmToScene(RACK_CONSTANTS.STANDARD_WIDTH_MM);
-const RACK_DEPTH = mmToScene(600); // Default depth for visualization
+const RACK_DEPTH = mmToScene(RACK_DEPTH_MM);
+
+// Export for equipment positioning - slots start above bottom frame
+export const SLOT_START_OFFSET = FRAME_THICKNESS;
 
 interface RackProps {
   showSlotNumbers?: boolean;
@@ -18,7 +21,8 @@ interface RackProps {
 
 export function Rack({ showSlotNumbers = true }: RackProps) {
   const rackSize = useRackStore((state) => state.rack.config.size);
-  const rackHeight = uToScene(rackSize);
+  const slotsHeight = uToScene(rackSize);
+  const totalRackHeight = slotsHeight + FRAME_THICKNESS * 2; // Add top and bottom frame
 
   // Create materials
   const frameMaterial = useMemo(
@@ -41,20 +45,21 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
     []
   );
 
-  // Generate slot indicators
+  // Generate slot indicators - offset by FRAME_THICKNESS
   const slotIndicators = useMemo(() => {
     const indicators = [];
     const slotHeight = uToScene(1);
 
     for (let i = 0; i < rackSize; i++) {
-      const y = i * slotHeight + slotHeight / 2;
+      // Slots start above the bottom frame
+      const y = SLOT_START_OFFSET + i * slotHeight + slotHeight / 2;
       const uNumber = i + 1;
 
       indicators.push(
         <group key={`slot-${uNumber}`} position={[0, y, RACK_DEPTH / 2 + 0.001]}>
           {/* Slot divider line */}
           <mesh position={[0, slotHeight / 2 - 0.002, 0]}>
-            <boxGeometry args={[RACK_WIDTH - RAIL_WIDTH * 2, 0.002, 0.001]} />
+            <boxGeometry args={[RACK_WIDTH - FRAME_THICKNESS * 2 - RAIL_WIDTH * 2, 0.002, 0.001]} />
             <meshBasicMaterial color="#333333" />
           </mesh>
 
@@ -62,7 +67,7 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
           {showSlotNumbers && (
             <Text
               position={[-(RACK_WIDTH / 2) - 0.03, 0, 0]}
-              fontSize={0.025}
+              fontSize={0.02}
               color="#666666"
               anchorX="right"
               anchorY="middle"
@@ -82,57 +87,57 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
       {/* Rack Frame - 4 vertical posts */}
       {/* Front Left Post */}
       <mesh
-        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, rackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
+        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, totalRackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
-        <boxGeometry args={[FRAME_THICKNESS, rackHeight, FRAME_THICKNESS]} />
+        <boxGeometry args={[FRAME_THICKNESS, totalRackHeight, FRAME_THICKNESS]} />
       </mesh>
 
       {/* Front Right Post */}
       <mesh
-        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, rackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
+        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, totalRackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
-        <boxGeometry args={[FRAME_THICKNESS, rackHeight, FRAME_THICKNESS]} />
+        <boxGeometry args={[FRAME_THICKNESS, totalRackHeight, FRAME_THICKNESS]} />
       </mesh>
 
       {/* Rear Left Post */}
       <mesh
-        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, rackHeight / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
+        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, totalRackHeight / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
-        <boxGeometry args={[FRAME_THICKNESS, rackHeight, FRAME_THICKNESS]} />
+        <boxGeometry args={[FRAME_THICKNESS, totalRackHeight, FRAME_THICKNESS]} />
       </mesh>
 
       {/* Rear Right Post */}
       <mesh
-        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, rackHeight / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
+        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, totalRackHeight / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
-        <boxGeometry args={[FRAME_THICKNESS, rackHeight, FRAME_THICKNESS]} />
+        <boxGeometry args={[FRAME_THICKNESS, totalRackHeight, FRAME_THICKNESS]} />
       </mesh>
 
-      {/* Front Mounting Rails */}
+      {/* Front Mounting Rails - only in the slots area */}
       {/* Left Rail */}
       <mesh
-        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS + RAIL_WIDTH / 2, rackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
+        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS + RAIL_WIDTH / 2, SLOT_START_OFFSET + slotsHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
         material={railMaterial}
       >
-        <boxGeometry args={[RAIL_WIDTH, rackHeight, FRAME_THICKNESS * 0.8]} />
+        <boxGeometry args={[RAIL_WIDTH, slotsHeight, FRAME_THICKNESS * 0.8]} />
       </mesh>
 
       {/* Right Rail */}
       <mesh
-        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS - RAIL_WIDTH / 2, rackHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
+        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS - RAIL_WIDTH / 2, SLOT_START_OFFSET + slotsHeight / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
         material={railMaterial}
       >
-        <boxGeometry args={[RAIL_WIDTH, rackHeight, FRAME_THICKNESS * 0.8]} />
+        <boxGeometry args={[RAIL_WIDTH, slotsHeight, FRAME_THICKNESS * 0.8]} />
       </mesh>
 
       {/* Top Cross Beams */}
       {/* Front Top */}
       <mesh
-        position={[0, rackHeight - FRAME_THICKNESS / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
+        position={[0, totalRackHeight - FRAME_THICKNESS / 2, RACK_DEPTH / 2 - FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
         <boxGeometry args={[RACK_WIDTH, FRAME_THICKNESS, FRAME_THICKNESS]} />
@@ -140,7 +145,7 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
 
       {/* Rear Top */}
       <mesh
-        position={[0, rackHeight - FRAME_THICKNESS / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
+        position={[0, totalRackHeight - FRAME_THICKNESS / 2, -(RACK_DEPTH / 2) + FRAME_THICKNESS / 2]}
         material={frameMaterial}
       >
         <boxGeometry args={[RACK_WIDTH, FRAME_THICKNESS, FRAME_THICKNESS]} />
@@ -148,14 +153,14 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
 
       {/* Side Top Beams */}
       <mesh
-        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, rackHeight - FRAME_THICKNESS / 2, 0]}
+        position={[-(RACK_WIDTH / 2) + FRAME_THICKNESS / 2, totalRackHeight - FRAME_THICKNESS / 2, 0]}
         material={frameMaterial}
       >
         <boxGeometry args={[FRAME_THICKNESS, FRAME_THICKNESS, RACK_DEPTH - FRAME_THICKNESS * 2]} />
       </mesh>
 
       <mesh
-        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, rackHeight - FRAME_THICKNESS / 2, 0]}
+        position={[(RACK_WIDTH / 2) - FRAME_THICKNESS / 2, totalRackHeight - FRAME_THICKNESS / 2, 0]}
         material={frameMaterial}
       >
         <boxGeometry args={[FRAME_THICKNESS, FRAME_THICKNESS, RACK_DEPTH - FRAME_THICKNESS * 2]} />
@@ -182,8 +187,8 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
       {slotIndicators}
 
       {/* Back panel (semi-transparent for visibility) */}
-      <mesh position={[0, rackHeight / 2, -(RACK_DEPTH / 2) + 0.005]}>
-        <planeGeometry args={[RACK_WIDTH - FRAME_THICKNESS * 2, rackHeight - FRAME_THICKNESS]} />
+      <mesh position={[0, SLOT_START_OFFSET + slotsHeight / 2, -(RACK_DEPTH / 2) + 0.005]}>
+        <planeGeometry args={[RACK_WIDTH - FRAME_THICKNESS * 2, slotsHeight]} />
         <meshStandardMaterial
           color="#0a0a0a"
           transparent

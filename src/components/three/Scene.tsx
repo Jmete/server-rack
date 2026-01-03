@@ -2,8 +2,18 @@
 
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import { Rack } from './Rack';
+import { Equipment } from './Equipment';
+import { useRackStore, useUIStore } from '@/stores';
 
 export function Scene() {
+  const equipment = useRackStore((state) => state.equipment);
+  const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
+  const selectEquipment = useUIStore((state) => state.selectEquipment);
+
+  const handleBackgroundClick = () => {
+    selectEquipment(null);
+  };
+
   return (
     <>
       {/* Camera Controls */}
@@ -36,7 +46,12 @@ export function Scene() {
       {/* Environment for reflections */}
       <Environment preset="city" />
 
-      {/* Grid Floor */}
+      {/* Grid Floor - click to deselect */}
+      <mesh position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} onClick={handleBackgroundClick}>
+        <planeGeometry args={[50, 50]} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+
       <Grid
         position={[0, 0, 0]}
         args={[20, 20]}
@@ -54,6 +69,16 @@ export function Scene() {
 
       {/* Server Rack */}
       <Rack />
+
+      {/* Equipment in Rack */}
+      {equipment.map((eq) => (
+        <Equipment
+          key={eq.instanceId}
+          equipment={eq}
+          isSelected={eq.instanceId === selectedEquipmentId}
+          onClick={() => selectEquipment(eq.instanceId)}
+        />
+      ))}
     </>
   );
 }

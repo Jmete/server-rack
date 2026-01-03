@@ -34,6 +34,16 @@ export const RACK_CONSTANTS = {
 // 3D scene scale factor (1 unit = 100mm for easier visualization)
 export const SCALE_FACTOR = 0.01;
 
+// Frame dimensions for positioning
+// Standard rack posts are ~20mm thick, allowing 442mm clear opening for 19" equipment
+export const FRAME_THICKNESS_MM = 20;
+export const RACK_DEPTH_MM = 600;
+
+// Equipment mounting dimensions (EIA-310 standard)
+// 19" equipment front panels are 482.6mm wide but mount in 450mm (17.75") opening
+// The mounting ears extend beyond the chassis to reach the rails
+export const EQUIPMENT_OPENING_MM = 450; // 17.75" minimum opening between rails
+
 // Convert mm to scene units
 export function mmToScene(mm: number): number {
   return mm * SCALE_FACTOR;

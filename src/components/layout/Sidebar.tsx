@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RackConfig } from '@/components/panels/RackConfig';
+import { EquipmentCatalog } from '@/components/panels/EquipmentCatalog';
 
 export function Sidebar() {
   return (
@@ -26,38 +27,7 @@ export function Sidebar() {
         </TabsList>
 
         <TabsContent value="catalog" className="mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Equipment Catalog</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Drag equipment from here to the rack.
-              </p>
-              <div className="mt-4 space-y-2">
-                <div className="p-3 border border-border rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
-                  <div className="font-medium text-sm">UDM Pro Router</div>
-                  <div className="text-xs text-muted-foreground">1U - 8x RJ45, 2x SFP+</div>
-                </div>
-                <div className="p-3 border border-border rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
-                  <div className="font-medium text-sm">USW Pro 48 PoE</div>
-                  <div className="text-xs text-muted-foreground">1U - 48x RJ45, 4x SFP+</div>
-                </div>
-                <div className="p-3 border border-border rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
-                  <div className="font-medium text-sm">24-Port Patch Panel</div>
-                  <div className="text-xs text-muted-foreground">1U - 24x RJ45</div>
-                </div>
-                <div className="p-3 border border-border rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
-                  <div className="font-medium text-sm">Rack UPS</div>
-                  <div className="text-xs text-muted-foreground">2U - LCD Display, 6x Outlets</div>
-                </div>
-                <div className="p-3 border border-border rounded-md bg-muted/50 cursor-pointer hover:bg-muted transition-colors">
-                  <div className="font-medium text-sm">UK PDU</div>
-                  <div className="text-xs text-muted-foreground">1U - 8x BS1363 Outlets</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <EquipmentCatalog />
         </TabsContent>
 
         <TabsContent value="properties" className="mt-4">
