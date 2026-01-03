@@ -69,7 +69,8 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       return null;
     }
 
-    const portTypes = usePortStore.getState().types;
+    const portStore = usePortStore.getState();
+    const portTypes = portStore.types;
     const sourceType = portTypes[connectionMode.sourcePortId];
     const targetType = portTypes[portId];
     if (!sourceType || !targetType) {
@@ -88,13 +89,27 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
         c.targetPortId !== portId
     );
 
+    const sourcePos = portStore.positions[connectionMode.sourcePortId];
+    const targetPos = portStore.positions[portId];
+    const directMm =
+      sourcePos && targetPos
+        ? Math.hypot(
+            sourcePos[0] - targetPos[0],
+            sourcePos[1] - targetPos[1],
+            sourcePos[2] - targetPos[2]
+          ) / 0.01
+        : null;
+
     // Create the cable
-    const cable = createCable(
-      connectionMode.sourcePortId,
-      portId,
-      connectionMode.cableType,
-      connectionMode.cableColor
-    );
+    const cable = {
+      ...createCable(
+        connectionMode.sourcePortId,
+        portId,
+        connectionMode.cableType,
+        connectionMode.cableColor
+      ),
+      length: directMm ? Math.round(directMm * 1.1) : undefined,
+    };
 
     set((state) => ({
       cables: [...filteredCables, cable],

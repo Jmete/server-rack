@@ -19,6 +19,7 @@ export interface Cable {
   sourcePortId: string; // Global port ID
   targetPortId: string; // Global port ID
   label?: string;
+  length?: number; // mm of cable length for slack control
 }
 
 // Predefined cable colors

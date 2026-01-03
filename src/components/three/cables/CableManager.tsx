@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { useConnectionStore, usePortStore, useUIStore } from '@/stores';
 import { mmToScene } from '@/constants';
 import { Cable } from './Cable';
+import * as THREE from 'three';
 
 export function CableManager() {
   const cables = useConnectionStore((state) => state.cables);
@@ -17,14 +18,26 @@ export function CableManager() {
         const start = portPositions[cable.sourcePortId];
         const end = portPositions[cable.targetPortId];
         if (!start || !end) return null;
+        const startVec = new THREE.Vector3(...start);
+        const endVec = new THREE.Vector3(...end);
+        const directLength = startVec.distanceTo(endVec);
         return {
           id: cable.id,
           color: cable.color.hex,
           start,
           end,
+          directLength,
+          length: cable.length ? mmToScene(cable.length) : undefined,
         };
       })
-      .filter(Boolean) as { id: string; color: string; start: [number, number, number]; end: [number, number, number] }[];
+      .filter(Boolean) as {
+        id: string;
+        color: string;
+        start: [number, number, number];
+        end: [number, number, number];
+        directLength: number;
+        length?: number;
+      }[];
   }, [cables, portPositions]);
 
   const cableTension = mmToScene(120);
@@ -43,6 +56,8 @@ export function CableManager() {
           onSelect={selectCable}
           tension={cableTension}
           frontOffset={cableFrontOffset}
+          directLength={cable.directLength}
+          length={cable.length}
         />
       ))}
     </group>

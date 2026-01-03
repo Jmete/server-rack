@@ -1,24 +1,35 @@
 'use client';
 
 import { useMemo } from 'react';
+import * as THREE from 'three';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRackStore, useUIStore } from '@/stores';
+import { useConnectionStore, usePortStore, useRackStore, useUIStore } from '@/stores';
 import { PORT_TYPE_LABELS } from '@/types/port';
 
 export function PropertiesPanel() {
   const equipment = useRackStore((state) => state.equipment);
   const updateEquipment = useRackStore((state) => state.updateEquipment);
   const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
+  const cables = useConnectionStore((state) => state.cables);
+  const updateCable = useConnectionStore((state) => state.updateCable);
+  const selectedCableId = useUIStore((state) => state.selectedCableId);
 
   const selected = useMemo(
     () => equipment.find((item) => item.instanceId === selectedEquipmentId) ?? null,
     [equipment, selectedEquipmentId]
   );
 
-  if (!selected) {
+  const selectedCable = useMemo(
+    () => cables.find((cable) => cable.id === selectedCableId) ?? null,
+    [cables, selectedCableId]
+  );
+
+  const portPositions = usePortStore((state) => state.positions);
+
+  if (!selected && !selectedCable) {
     return (
       <Card>
         <CardHeader className="pb-2">
@@ -28,6 +39,72 @@ export function PropertiesPanel() {
           <p className="text-sm text-muted-foreground">
             Select an item to view its properties.
           </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (selectedCable) {
+    const sourcePos = portPositions[selectedCable.sourcePortId];
+    const targetPos = portPositions[selectedCable.targetPortId];
+    const directLength = sourcePos && targetPos
+      ? new THREE.Vector3(...sourcePos).distanceTo(new THREE.Vector3(...targetPos))
+      : 0;
+    const directMm = directLength / 0.01;
+    const currentLength = selectedCable.length ?? directMm;
+    const maxMm = Math.max(directMm * 2.5, directMm + 150);
+
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Properties</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="cableLabel" className="text-xs text-muted-foreground">
+              Cable Label
+            </Label>
+            <Input
+              id="cableLabel"
+              value={selectedCable.label ?? ''}
+              placeholder="Optional label"
+              onChange={(event) =>
+                updateCable(selectedCable.id, { label: event.target.value })
+              }
+            />
+          </div>
+
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Cable Type</span>
+              <span>{selectedCable.type}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Color</span>
+              <span>{selectedCable.color.name}</span>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cableLength" className="text-xs text-muted-foreground">
+                Cable Length (mm)
+              </Label>
+              <Input
+                id="cableLength"
+                type="number"
+                min={Math.round(directMm)}
+                max={Math.round(maxMm)}
+                value={Math.round(currentLength)}
+                onChange={(event) => {
+                  const value = Number.parseFloat(event.target.value);
+                  if (Number.isFinite(value)) {
+                    updateCable(selectedCable.id, { length: value });
+                  }
+                }}
+              />
+              <div className="text-xs text-muted-foreground">
+                Min {Math.round(directMm)}mm · Max {Math.round(maxMm)}mm
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
