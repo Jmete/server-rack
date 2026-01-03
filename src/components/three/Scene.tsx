@@ -6,6 +6,8 @@ import { Equipment } from './Equipment';
 import { RackDropBounds } from './RackDropBounds';
 import { RackHoverHighlight } from './RackHoverHighlight';
 import { CableManager } from './cables/CableManager';
+import { PortLabelProjector } from './PortLabelProjector';
+import { ExportCameraController } from './ExportCameraController';
 import { useRackStore, useUIStore } from '@/stores';
 
 export function Scene() {
@@ -13,6 +15,7 @@ export function Scene() {
   const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
   const selectEquipment = useUIStore((state) => state.selectEquipment);
   const clearSelection = useUIStore((state) => state.clearSelection);
+  const isExporting = useUIStore((state) => state.isExporting);
 
   const handleBackgroundClick = () => {
     clearSelection();
@@ -56,25 +59,29 @@ export function Scene() {
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      <Grid
-        position={[0, 0, 0]}
-        args={[20, 20]}
-        cellSize={0.5}
-        cellThickness={0.5}
-        cellColor="#6b7280"
-        sectionSize={2}
-        sectionThickness={1}
-        sectionColor="#374151"
-        fadeDistance={25}
-        fadeStrength={1}
-        followCamera={false}
-        infiniteGrid={true}
-      />
+      {!isExporting && (
+        <Grid
+          position={[0, 0, 0]}
+          args={[20, 20]}
+          cellSize={0.5}
+          cellThickness={0.5}
+          cellColor="#6b7280"
+          sectionSize={2}
+          sectionThickness={1}
+          sectionColor="#374151"
+          fadeDistance={25}
+          fadeStrength={1}
+          followCamera={false}
+          infiniteGrid={true}
+        />
+      )}
 
       {/* Server Rack */}
       <Rack />
       <RackDropBounds />
       <RackHoverHighlight />
+      <PortLabelProjector />
+      <ExportCameraController />
 
       {/* Equipment in Rack */}
       {equipment.map((eq) => (

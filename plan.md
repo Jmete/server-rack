@@ -422,7 +422,7 @@ server-rack/
 
 ### Section 10: Export Functionality
 
-**Status**: [ ] Not Started
+**Status**: [~] In Progress
 
 **Goal**: Export rack configuration
 

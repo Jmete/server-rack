@@ -10,7 +10,7 @@ export function Viewport() {
     <div className="relative w-full h-full bg-zinc-900">
       <Canvas
         camera={{ position: [5, 5, 5], fov: 50 }}
-        gl={{ antialias: true }}
+        gl={{ antialias: true, preserveDrawingBuffer: true, alpha: true }}
       >
         <Scene />
       </Canvas>

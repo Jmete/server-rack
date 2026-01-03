@@ -24,6 +24,10 @@ interface UIState {
   rackSlotBounds: { slotNumber: number; left: number; top: number; width: number; height: number }[] | null;
   equipmentScreenBounds: { instanceId: string; left: number; top: number; width: number; height: number }[] | null;
   rackHover: { start: number; count: number; valid: boolean } | null;
+  portScreenPositions: { id: string; x: number; y: number }[] | null;
+  isExporting: boolean;
+  exportCameraReady: boolean;
+  exportGeneration: number;
 
   // Selection actions
   selectEquipment: (id: string | null) => void;
@@ -51,6 +55,10 @@ interface UIState {
     bounds: { instanceId: string; left: number; top: number; width: number; height: number }[] | null
   ) => void;
   setRackHover: (hover: { start: number; count: number; valid: boolean } | null) => void;
+  setPortScreenPositions: (positions: { id: string; x: number; y: number }[] | null) => void;
+  setIsExporting: (isExporting: boolean) => void;
+  setExportCameraReady: (ready: boolean) => void;
+  bumpExportGeneration: () => void;
 
   // Utility
   clearSelection: () => void;
@@ -75,6 +83,10 @@ export const useUIStore = create<UIState>((set) => ({
   rackSlotBounds: null,
   equipmentScreenBounds: null,
   rackHover: null,
+  portScreenPositions: null,
+  isExporting: false,
+  exportCameraReady: false,
+  exportGeneration: 0,
 
   // Selection actions
   selectEquipment: (id: string | null) => {
@@ -149,6 +161,22 @@ export const useUIStore = create<UIState>((set) => ({
 
   setRackHover: (hover) => {
     set({ rackHover: hover });
+  },
+
+  setPortScreenPositions: (positions) => {
+    set({ portScreenPositions: positions });
+  },
+
+  setIsExporting: (isExporting) => {
+    set({ isExporting });
+  },
+
+  setExportCameraReady: (ready) => {
+    set({ exportCameraReady: ready });
+  },
+
+  bumpExportGeneration: () => {
+    set((state) => ({ exportGeneration: state.exportGeneration + 1 }));
   },
 
   // Utility

@@ -28,6 +28,7 @@ export interface PortDefinition {
   id: string;
   type: PortType;
   label: string;
+  customLabel?: string;
   position: PortPosition;
   speed?: PortSpeed;
   poe?: boolean;

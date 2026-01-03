@@ -1,11 +1,11 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RackConfig } from '@/components/panels/RackConfig';
 import { EquipmentCatalog } from '@/components/panels/EquipmentCatalog';
 import { PropertiesPanel } from '@/components/panels/PropertiesPanel';
 import { ConnectionsPanel } from '@/components/panels/ConnectionsPanel';
+import { ExportPanel } from '@/components/panels/ExportPanel';
 
 export function Sidebar() {
   return (
@@ -41,16 +41,7 @@ export function Sidebar() {
         </TabsContent>
 
         <TabsContent value="export" className="mt-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Export Options</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Export your rack configuration.
-              </p>
-            </CardContent>
-          </Card>
+          <ExportPanel />
         </TabsContent>
       </Tabs>
     </div>

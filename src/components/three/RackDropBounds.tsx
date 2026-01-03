@@ -18,10 +18,12 @@ export function RackDropBounds() {
   const setRackScreenBounds = useUIStore((state) => state.setRackScreenBounds);
   const setRackSlotBounds = useUIStore((state) => state.setRackSlotBounds);
   const setEquipmentScreenBounds = useUIStore((state) => state.setEquipmentScreenBounds);
+  const exportGeneration = useUIStore((state) => state.exportGeneration);
   const { camera, size } = useThree();
   const lastBounds = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
   const lastSlotBounds = useRef<{ slotNumber: number; left: number; top: number; width: number; height: number }[] | null>(null);
   const lastEquipmentBounds = useRef<{ instanceId: string; left: number; top: number; width: number; height: number }[] | null>(null);
+  const lastExportGeneration = useRef(exportGeneration);
 
   useFrame(() => {
     const slotsHeight = uToScene(rackSize);
@@ -62,15 +64,42 @@ export function RackDropBounds() {
       });
     }
 
+    const totalRackHeight = slotsHeight + FRAME_THICKNESS * 2;
+    const rackCorners = [
+      new THREE.Vector3(-RACK_WIDTH / 2, 0, -RACK_DEPTH / 2),
+      new THREE.Vector3(RACK_WIDTH / 2, 0, -RACK_DEPTH / 2),
+      new THREE.Vector3(-RACK_WIDTH / 2, totalRackHeight, -RACK_DEPTH / 2),
+      new THREE.Vector3(RACK_WIDTH / 2, totalRackHeight, -RACK_DEPTH / 2),
+      new THREE.Vector3(-RACK_WIDTH / 2, 0, RACK_DEPTH / 2),
+      new THREE.Vector3(RACK_WIDTH / 2, 0, RACK_DEPTH / 2),
+      new THREE.Vector3(-RACK_WIDTH / 2, totalRackHeight, RACK_DEPTH / 2),
+      new THREE.Vector3(RACK_WIDTH / 2, totalRackHeight, RACK_DEPTH / 2),
+    ];
+
+    const projectedRack = rackCorners.map((point) => {
+      const projected = point.project(camera);
+      return {
+        x: (projected.x * 0.5 + 0.5) * size.width,
+        y: (-projected.y * 0.5 + 0.5) * size.height,
+      };
+    });
+
+    const rackLeft = Math.min(...projectedRack.map((p) => p.x));
+    const rackRight = Math.max(...projectedRack.map((p) => p.x));
+    const rackTop = Math.min(...projectedRack.map((p) => p.y));
+    const rackBottom = Math.max(...projectedRack.map((p) => p.y));
+
     const nextBounds = {
-      left: Math.min(...slotBounds.map((b) => b.left)),
-      top: Math.min(...slotBounds.map((b) => b.top)),
-      width: Math.max(...slotBounds.map((b) => b.left + b.width)) - Math.min(...slotBounds.map((b) => b.left)),
-      height: Math.max(...slotBounds.map((b) => b.top + b.height)) - Math.min(...slotBounds.map((b) => b.top)),
+      left: rackLeft,
+      top: rackTop,
+      width: Math.max(0, rackRight - rackLeft),
+      height: Math.max(0, rackBottom - rackTop),
     };
 
     const prev = lastBounds.current;
+    const generationChanged = exportGeneration !== lastExportGeneration.current;
     if (
+      generationChanged ||
       !prev ||
       Math.abs(prev.left - nextBounds.left) > 0.5 ||
       Math.abs(prev.top - nextBounds.top) > 0.5 ||
@@ -78,6 +107,7 @@ export function RackDropBounds() {
       Math.abs(prev.height - nextBounds.height) > 0.5
     ) {
       lastBounds.current = nextBounds;
+      lastExportGeneration.current = exportGeneration;
       setRackScreenBounds(nextBounds);
     }
 

@@ -186,17 +186,21 @@ export function PropertiesPanel() {
                     className={`space-y-1 text-xs rounded-md p-2 ${isSelected ? 'bg-muted/70' : ''}`}
                   >
                     <div className="flex justify-between text-muted-foreground">
-                      <span>{PORT_TYPE_LABELS[port.type]}</span>
-                      <span>{port.speed ? `${port.speed}` : ''}</span>
+                      <span>{port.label}</span>
+                      <span>
+                        {PORT_TYPE_LABELS[port.type]}
+                        {port.speed ? ` - ${port.speed}` : ''}
+                      </span>
                     </div>
                     <Input
-                      value={port.label}
+                      value={port.customLabel ?? ''}
+                      placeholder="Custom label"
                       ref={(el) => {
                         portRefs.current[globalId] = el;
                       }}
                       onChange={(event) => {
                         const nextPorts = selected.ports.map((item) =>
-                          item.id === port.id ? { ...item, label: event.target.value } : item
+                          item.id === port.id ? { ...item, customLabel: event.target.value } : item
                         );
                         updateEquipment(selected.instanceId, { ports: nextPorts });
                       }}
