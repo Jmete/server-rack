@@ -292,7 +292,7 @@ server-rack/
 
 ### Section 6: Equipment Catalog & Drag-and-Drop
 
-**Status**: [~] In Progress
+**Status**: [x] Complete
 
 **Goal**: Drag equipment from sidebar to rack
 
@@ -315,13 +315,13 @@ server-rack/
 
 **Test Criteria**:
 
-- [ ] Catalog shows all 5 equipment types with labels
-- [ ] Can drag equipment from catalog
-- [ ] Visual feedback during drag (ghost/preview)
-- [ ] Equipment snaps to valid U position on drop
-- [ ] Cannot drop on occupied slots
-- [ ] 2U equipment (UPS) blocks 2 slots
-- [ ] Can delete equipment from rack
+- [x] Catalog shows all 5 equipment types with labels
+- [x] Can drag equipment from catalog
+- [x] Visual feedback during drag (ghost/preview)
+- [x] Equipment snaps to valid U position on drop
+- [x] Cannot drop on occupied slots
+- [x] 2U equipment (UPS) blocks 2 slots
+- [x] Can delete equipment from rack
 
 ---
 
@@ -537,3 +537,5 @@ interface Cable {
 | 2026-01-03 | Section 2 | Complete | Types, Zustand stores, constants, equipment catalog                 |
 | 2026-01-03 | Section 3 | Complete | 3D rack frame with U slots, size selector, dark metal appearance    |
 | 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add |
+| 2026-01-03 | Section 5 | Complete | Remaining equipment models added (USW-Pro-48-POE, patch panel, UPS, PDU, power ports) |
+| 2026-01-03 | Section 6 | Complete | Drag-and-drop catalog placement, rack reordering, multi-U hover, delete controls |
