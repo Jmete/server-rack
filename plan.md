@@ -327,7 +327,7 @@ server-rack/
 
 ### Section 7: Properties Panel & Equipment Selection
 
-**Status**: [~] In Progress
+**Status**: [x] Complete
 
 **Goal**: View and edit selected equipment
 
@@ -346,12 +346,12 @@ server-rack/
 
 **Test Criteria**:
 
-- [ ] Clicking equipment selects it
-- [ ] Selected equipment has visual highlight
-- [ ] Properties panel shows: name, model, U position
-- [ ] Can edit custom label
-- [ ] Port list shows all ports with types
-- [ ] Clicking empty space deselects
+- [x] Clicking equipment selects it
+- [x] Selected equipment has visual highlight
+- [x] Properties panel shows: name, model, U position
+- [x] Can edit custom label
+- [x] Port list shows all ports with types
+- [x] Clicking empty space deselects
 
 ---
 
@@ -539,3 +539,4 @@ interface Cable {
 | 2026-01-03 | Section 4 | Complete | UDM-Pro model, RJ45/SFP+ ports, equipment catalog with click-to-add |
 | 2026-01-03 | Section 5 | Complete | Remaining equipment models added (USW-Pro-48-POE, patch panel, UPS, PDU, power ports) |
 | 2026-01-03 | Section 6 | Complete | Drag-and-drop catalog placement, rack reordering, multi-U hover, delete controls |
+| 2026-01-03 | Section 7 | Complete | Properties panel, selection highlight, custom labels, port list |
