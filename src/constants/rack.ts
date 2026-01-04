@@ -1,3 +1,16 @@
+// Rack size limits (in U)
+export const MIN_RACK_SIZE = 1;
+export const MAX_RACK_SIZE = 48;
+export const DEFAULT_RACK_SIZE = 42;
+
+// Rack depth limits (in inches)
+export const MIN_DEPTH_INCHES = 10;
+export const MAX_DEPTH_INCHES = 50;
+export const DEFAULT_DEPTH_INCHES = 32; // ~800mm Ubiquiti standard
+
+// Conversion constant
+export const INCH_TO_MM = 25.4;
+
 // Standard rack dimensions
 export const RACK_CONSTANTS = {
   // Standard 19" rack width in mm

@@ -1,4 +1,4 @@
-export type RackSize = 42 | 48;
+export type RackSize = number; // 1-48 U
 export type RackWidth = 19; // inches, standard
 
 export interface RackConfig {
@@ -21,7 +21,7 @@ export interface Rack {
 }
 
 // Helper to create initial slots for a rack
-export function createRackSlots(size: RackSize): RackSlot[] {
+export function createRackSlots(size: number): RackSlot[] {
   return Array.from({ length: size }, (_, i) => ({
     position: i + 1,
     occupied: false,
@@ -30,6 +30,7 @@ export function createRackSlots(size: RackSize): RackSlot[] {
 }
 
 // Default rack configuration
+// Default depth: 32 inches (~800mm Ubiquiti standard)
 export function createDefaultRack(): Rack {
   return {
     config: {
@@ -37,7 +38,7 @@ export function createDefaultRack(): Rack {
       name: 'Server Rack 1',
       size: 42,
       width: 19,
-      depth: 1000,
+      depth: 813, // 32 inches in mm (32 * 25.4 ≈ 813mm)
     },
     slots: createRackSlots(42),
   };

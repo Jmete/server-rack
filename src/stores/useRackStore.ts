@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import {
   Rack,
   RackConfig,
-  RackSize,
   Equipment,
   EquipmentDefinition,
   createDefaultRack,
@@ -10,13 +9,15 @@ import {
   createEquipmentInstance,
 } from '@/types';
 import { useConnectionStore } from './useConnectionStore';
+import { MIN_RACK_SIZE, MAX_RACK_SIZE, MIN_DEPTH_INCHES, MAX_DEPTH_INCHES, INCH_TO_MM } from '@/constants';
 
 interface RackState {
   rack: Rack;
   equipment: Equipment[];
 
   // Rack configuration actions
-  setRackSize: (size: RackSize) => void;
+  setRackSize: (size: number) => void;
+  setRackDepth: (depthInches: number) => void;
   setRackName: (name: string) => void;
   setRackConfig: (config: Partial<RackConfig>) => void;
 
@@ -45,17 +46,31 @@ export const useRackStore = create<RackState>((set, get) => ({
   rack: createDefaultRack(),
   equipment: [],
 
-  setRackSize: (size: RackSize) => {
+  setRackSize: (size: number) => {
+    // Clamp size to valid range
+    const clampedSize = Math.max(MIN_RACK_SIZE, Math.min(MAX_RACK_SIZE, Math.round(size)));
     set((state) => ({
       rack: {
         ...state.rack,
-        config: { ...state.rack.config, size },
-        slots: createRackSlots(size),
+        config: { ...state.rack.config, size: clampedSize },
+        slots: createRackSlots(clampedSize),
       },
       // Remove equipment that no longer fits
       equipment: state.equipment.filter(
-        (eq) => eq.slotPosition + eq.heightU - 1 <= size
+        (eq) => eq.slotPosition + eq.heightU - 1 <= clampedSize
       ),
+    }));
+  },
+
+  setRackDepth: (depthInches: number) => {
+    // Clamp depth to valid range and convert to mm
+    const clampedDepth = Math.max(MIN_DEPTH_INCHES, Math.min(MAX_DEPTH_INCHES, depthInches));
+    const depthMm = Math.round(clampedDepth * INCH_TO_MM);
+    set((state) => ({
+      rack: {
+        ...state.rack,
+        config: { ...state.rack.config, depth: depthMm },
+      },
     }));
   },
 

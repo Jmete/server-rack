@@ -4,13 +4,12 @@ import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRackStore } from '@/stores';
-import { RACK_CONSTANTS, mmToScene, uToScene, RACK_COLORS, FRAME_THICKNESS_MM, RACK_DEPTH_MM } from '@/constants';
+import { RACK_CONSTANTS, mmToScene, uToScene, RACK_COLORS, FRAME_THICKNESS_MM } from '@/constants';
 
-// Rack frame dimensions
+// Rack frame dimensions (static)
 const FRAME_THICKNESS = mmToScene(FRAME_THICKNESS_MM);
 const RAIL_WIDTH = mmToScene(RACK_CONSTANTS.RAIL_WIDTH_MM);
 const RACK_WIDTH = mmToScene(RACK_CONSTANTS.STANDARD_WIDTH_MM);
-const RACK_DEPTH = mmToScene(RACK_DEPTH_MM);
 
 // Export for equipment positioning - slots start above bottom frame
 export const SLOT_START_OFFSET = FRAME_THICKNESS;
@@ -21,6 +20,10 @@ interface RackProps {
 
 export function Rack({ showSlotNumbers = true }: RackProps) {
   const rackSize = useRackStore((state) => state.rack.config.size);
+  const rackDepthMm = useRackStore((state) => state.rack.config.depth);
+
+  // Calculate dynamic dimensions
+  const RACK_DEPTH = mmToScene(rackDepthMm);
   const slotsHeight = uToScene(rackSize);
   const totalRackHeight = slotsHeight + FRAME_THICKNESS * 2; // Add top and bottom frame
 
@@ -80,7 +83,7 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
     }
 
     return indicators;
-  }, [rackSize, showSlotNumbers]);
+  }, [rackSize, showSlotNumbers, RACK_DEPTH]);
 
   return (
     <group position={[0, 0, 0]}>
