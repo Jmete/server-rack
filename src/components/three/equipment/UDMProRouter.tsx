@@ -5,7 +5,8 @@ import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Equipment } from '@/types';
 import { createPortInstances } from '@/types/port';
-import { mmToScene, uToScene, RACK_CONSTANTS, EQUIPMENT_COLORS, FRAME_THICKNESS_MM, RACK_DEPTH_MM } from '@/constants';
+import { mmToScene, uToScene, RACK_CONSTANTS, EQUIPMENT_COLORS, FRAME_THICKNESS_MM } from '@/constants';
+import { useRackStore } from '@/stores';
 import { RJ45Port, SFPPort } from '../ports';
 
 interface UDMProRouterProps {
@@ -21,21 +22,23 @@ const HEIGHT = uToScene(1);
 const DEPTH = mmToScene(285.6);
 const FACEPLATE_THICKNESS = mmToScene(3); // Thin faceplate at front
 
-// Rack positioning constants
+// Rack positioning constants (static)
 const FRAME_THICKNESS = mmToScene(FRAME_THICKNESS_MM);
-const RACK_WIDTH = mmToScene(RACK_CONSTANTS.STANDARD_WIDTH_MM);
-const RACK_DEPTH = mmToScene(RACK_DEPTH_MM);
 const RAIL_WIDTH = mmToScene(RACK_CONSTANTS.RAIL_WIDTH_MM);
-
-// Calculate where equipment front should be (flush with front of rails)
-// Rails are at z = RACK_DEPTH/2 - FRAME_THICKNESS/2 with depth FRAME_THICKNESS * 0.8
-// Rail front face = RACK_DEPTH/2 - FRAME_THICKNESS/2 + (FRAME_THICKNESS * 0.8)/2
-const RAIL_FRONT_Z = RACK_DEPTH / 2 - FRAME_THICKNESS / 2 + (FRAME_THICKNESS * 0.8) / 2;
 
 // Equipment starts above the bottom frame
 const SLOT_START_OFFSET = FRAME_THICKNESS;
 
 export function UDMProRouter({ equipment, onClick, isSelected }: UDMProRouterProps) {
+  // Get dynamic rack depth from store
+  const rackDepthMm = useRackStore((state) => state.rack.config.depth);
+  const RACK_DEPTH = mmToScene(rackDepthMm);
+
+  // Calculate where equipment front should be (flush with front of rails)
+  // Rails are at z = RACK_DEPTH/2 - FRAME_THICKNESS/2 with depth FRAME_THICKNESS * 0.8
+  // Rail front face = RACK_DEPTH/2 - FRAME_THICKNESS/2 + (FRAME_THICKNESS * 0.8)/2
+  const RAIL_FRONT_Z = RACK_DEPTH / 2 - FRAME_THICKNESS / 2 + (FRAME_THICKNESS * 0.8) / 2;
+
   // Calculate Y position - starts at SLOT_START_OFFSET, positioned in center of slot
   const yPosition = SLOT_START_OFFSET + uToScene(equipment.slotPosition - 1) + HEIGHT / 2;
 

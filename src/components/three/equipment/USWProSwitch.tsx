@@ -5,7 +5,8 @@ import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Equipment } from '@/types';
 import { createPortInstances } from '@/types/port';
-import { mmToScene, uToScene, EQUIPMENT_COLORS, FRAME_THICKNESS_MM, RACK_DEPTH_MM } from '@/constants';
+import { mmToScene, uToScene, EQUIPMENT_COLORS, FRAME_THICKNESS_MM } from '@/constants';
+import { useRackStore } from '@/stores';
 import { RJ45Port, SFPPort } from '../ports';
 
 interface USWProSwitchProps {
@@ -21,14 +22,16 @@ const HEIGHT = uToScene(1);
 const DEPTH = mmToScene(399.6);
 const FACEPLATE_THICKNESS = mmToScene(3);
 
-// Rack positioning constants
+// Rack positioning constants (static)
 const FRAME_THICKNESS = mmToScene(FRAME_THICKNESS_MM);
-const RACK_DEPTH = mmToScene(RACK_DEPTH_MM);
-
-const RAIL_FRONT_Z = RACK_DEPTH / 2 - FRAME_THICKNESS / 2 + (FRAME_THICKNESS * 0.8) / 2;
 const SLOT_START_OFFSET = FRAME_THICKNESS;
 
 export function USWProSwitch({ equipment, onClick, isSelected }: USWProSwitchProps) {
+  // Get dynamic rack depth from store
+  const rackDepthMm = useRackStore((state) => state.rack.config.depth);
+  const RACK_DEPTH = mmToScene(rackDepthMm);
+
+  const RAIL_FRONT_Z = RACK_DEPTH / 2 - FRAME_THICKNESS / 2 + (FRAME_THICKNESS * 0.8) / 2;
   const yPosition = SLOT_START_OFFSET + uToScene(equipment.slotPosition - 1) + HEIGHT / 2;
   const zPosition = RAIL_FRONT_Z - DEPTH / 2;
 
