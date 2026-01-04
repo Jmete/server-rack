@@ -22,13 +22,6 @@ type LegendEquipment = {
   ports: LegendPort[];
 };
 
-type LegendLine = {
-  text: string;
-  font: string;
-  lineHeight: number;
-  color?: string;
-  spacer?: boolean;
-};
 
 function formatPortIdentifier(port: LegendPort) {
   const digits = port.label.match(/\d+/);
@@ -42,11 +35,6 @@ function formatPortIdentifier(port: LegendPort) {
     return `SFP+ ${port.label}`;
   }
   return `${PORT_TYPE_LABELS[port.type as keyof typeof PORT_TYPE_LABELS] ?? port.type} ${port.label}`.trim();
-}
-
-function formatPortOverlayLabel(port: LegendPort) {
-  const digits = port.label.match(/\d+/);
-  return digits ? digits[0] : port.label;
 }
 
 function downloadBlob(filename: string, blob: Blob) {
@@ -181,52 +169,6 @@ export function ExportPanel() {
     downloadBlob('rack-cables.csv', blob);
   };
 
-  const wrapTextLines = (
-    text: string,
-    maxWidth: number,
-    context: CanvasRenderingContext2D
-  ) => {
-    const words = text.split(' ');
-    const lines: string[] = [];
-    let line = '';
-    words.forEach((word) => {
-      const next = line ? `${line} ${word}` : word;
-      if (context.measureText(next).width > maxWidth && line) {
-        lines.push(line);
-        line = word;
-      } else {
-        line = next;
-      }
-    });
-    if (line) lines.push(line);
-    return lines;
-  };
-
-  const buildLegendLines = (context: CanvasRenderingContext2D, maxWidth: number) => {
-    const lines: LegendLine[] = [];
-    const pushWrapped = (text: string, font: string, lineHeight: number, color?: string) => {
-      context.font = font;
-      wrapTextLines(text, maxWidth, context).forEach((line) => {
-        lines.push({ text: line, font, lineHeight, color });
-      });
-    };
-
-    pushWrapped('Rack Legend', '600 18px Arial', 24, '#111827');
-    lines.push({ text: '', font: '', lineHeight: 8, spacer: true });
-
-    equipmentLegend.forEach((item, index) => {
-      if (index > 0) {
-        lines.push({ text: '', font: '', lineHeight: 8, spacer: true });
-      }
-      pushWrapped(`${item.model}: ${item.customLabel ?? item.name}`, '600 14px Arial', 20, '#111827');
-      item.ports.forEach((port) => {
-        const label = `- ${formatPortIdentifier(port)}: ${port.customLabel ?? ''}`.trim();
-        pushWrapped(label, '400 12px Arial', 16, '#111827');
-      });
-    });
-
-    return lines;
-  };
 
   const buildExportCanvas = async () => {
     const canvas = document.querySelector('canvas');
@@ -269,113 +211,215 @@ export function ExportPanel() {
     );
 
     const baseExportHeight = Math.round(bounds.height / 0.9);
-    const legendProbe = document.createElement('canvas');
-    const legendContext = legendProbe.getContext('2d');
-    if (!legendContext) return null;
 
-    const buildLayout = (targetHeight: number) => {
-      const leftWidth = Math.round(targetHeight * 0.9);
-      const legendWidth = Math.max(360, leftWidth);
-      const legendLines = buildLegendLines(legendContext, legendWidth - 32);
-      const legendHeight =
-        legendLines.reduce((sum, line) => sum + line.lineHeight, 0) + 32;
-      const exportHeight = Math.max(targetHeight, legendHeight);
-      return {
-        exportHeight,
-        leftWidth,
-        legendWidth,
-        exportWidth: leftWidth + legendWidth,
-        legendLines,
-        legendHeight,
-      };
+    // Resolution multiplier for higher quality export (2x for retina-quality)
+    const dpiScale = 2;
+
+    // Create a temporary canvas to measure text
+    const measureCanvas = document.createElement('canvas');
+    const measureContext = measureCanvas.getContext('2d');
+    if (!measureContext) return null;
+
+    // Font sizes (will be scaled by dpiScale when drawing)
+    const basemodelFontSize = 14;
+    const baseCustomLabelFontSize = 12;
+    const modelFont = `600 ${basemodelFontSize}px Arial`;
+    const customLabelFont = `400 ${baseCustomLabelFontSize}px Arial`;
+
+    // Calculate maximum label width needed for inline equipment labels
+    let maxLabelWidth = 0;
+    equipment.forEach((eq) => {
+      measureContext.font = modelFont;
+      const modelWidth = measureContext.measureText(eq.model).width;
+      let labelWidth = modelWidth;
+      if (eq.customLabel) {
+        measureContext.font = customLabelFont;
+        labelWidth = Math.max(labelWidth, measureContext.measureText(eq.customLabel).width);
+      }
+      maxLabelWidth = Math.max(maxLabelWidth, labelWidth);
+    });
+
+    // Layout: [left labels] + [rack image] + [right labels] (in logical pixels)
+    const labelGap = 40; // Gap between rack and labels
+    const labelPadding = 16; // Outer padding for labels
+    const labelAreaWidth = Math.max(180, maxLabelWidth + labelPadding);
+    const rackImageWidth = Math.round(baseExportHeight * 0.4); // Rack takes ~40% of height as width
+
+    const layout = {
+      exportWidth: labelAreaWidth + labelGap + rackImageWidth + labelGap + labelAreaWidth,
+      exportHeight: baseExportHeight,
+      leftLabelAreaWidth: labelAreaWidth,
+      rackImageWidth,
+      rightLabelAreaWidth: labelAreaWidth,
+      labelGap,
     };
 
-    let layout = buildLayout(baseExportHeight);
-    if (layout.legendHeight > baseExportHeight) {
-      layout = buildLayout(layout.legendHeight);
-    }
-
+    // Create high-resolution canvas
     const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = layout.exportWidth;
-    exportCanvas.height = layout.exportHeight;
+    exportCanvas.width = layout.exportWidth * dpiScale;
+    exportCanvas.height = layout.exportHeight * dpiScale;
     const context = exportCanvas.getContext('2d');
     if (!context) return null;
+
+    // Scale all drawing operations for high DPI
+    context.scale(dpiScale, dpiScale);
 
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, layout.exportWidth, layout.exportHeight);
 
+    // Calculate rack image position (centered between label areas)
+    const rackAreaStart = layout.leftLabelAreaWidth + layout.labelGap;
     const rackTargetHeight = layout.exportHeight * 0.9;
     const maxRenderHeight = layout.exportHeight * 0.95;
-    const maxWidth = layout.leftWidth * 0.95;
+    const maxWidth = layout.rackImageWidth * 0.95;
     let scale = rackTargetHeight / Math.max(1, bounds.height);
     scale = Math.min(scale, maxWidth / Math.max(1, cropWidth), maxRenderHeight / Math.max(1, cropHeight));
     const renderWidth = Math.max(1, Math.round(cropWidth * scale));
     const renderHeight = Math.max(1, Math.round(cropHeight * scale));
-    const imageX = Math.round((layout.leftWidth - renderWidth) / 2);
+    const imageX = rackAreaStart + Math.round((layout.rackImageWidth - renderWidth) / 2);
     const imageY = Math.round((layout.exportHeight - renderHeight) / 2);
 
     context.drawImage(rackCanvas, imageX, imageY, renderWidth, renderHeight);
 
-    const portScreenPositions = uiState.portScreenPositions;
-    if (portScreenPositions) {
-      const offsetY = 2;
-      const minY = imageY + 4;
-      const maxY = imageY + renderHeight - 4;
+    // Draw inline equipment labels alternating left and right
+    const equipmentScreenBounds = uiState.equipmentScreenBounds;
+    if (equipmentScreenBounds) {
+      // Create a map for quick equipment lookup by instanceId
+      const equipmentMap = new Map(equipment.map((eq) => [eq.instanceId, eq]));
 
-      context.font = '700 9px Arial';
-      context.textBaseline = 'bottom';
-      context.lineWidth = 2;
-      context.strokeStyle = 'rgba(15, 23, 42, 0.7)';
-      context.fillStyle = '#f8fafc';
+      // Collect all label data with their natural Y positions
+      type LabelData = {
+        eq: typeof equipment[0];
+        canvasTop: number;
+        canvasHeight: number;
+        canvasLeft: number;
+        canvasRight: number;
+        naturalY: number;
+        adjustedY: number;
+        side: 'left' | 'right';
+      };
+      const allLabels: LabelData[] = [];
 
-      portScreenPositions.forEach((position) => {
-        const mapping = portLabelMap.get(position.id);
-        if (!mapping) return;
+      equipmentScreenBounds.forEach((eqBounds) => {
+        const eq = equipmentMap.get(eqBounds.instanceId);
+        if (!eq) return;
+
+        // Check if equipment bounds are within crop area
         if (
-          position.x < cropLeft ||
-          position.x > cropLeft + cropWidth ||
-          position.y < cropTop ||
-          position.y > cropTop + cropHeight
+          eqBounds.left + eqBounds.width < cropLeft ||
+          eqBounds.left > cropLeft + cropWidth ||
+          eqBounds.top + eqBounds.height < cropTop ||
+          eqBounds.top > cropTop + cropHeight
         ) {
           return;
         }
-        const label = formatPortOverlayLabel(mapping.port);
-        const portX = imageX + (position.x - cropLeft) * scale;
-        const portY = imageY + (position.y - cropTop) * scale;
-        const textWidth = context.measureText(label).width;
-        let labelY = portY - offsetY;
-        if (labelY < minY + 6) {
-          labelY = portY + 10;
-          if (labelY > maxY) {
-            labelY = Math.min(maxY, Math.max(minY, portY));
+
+        // Transform equipment bounds to export canvas coordinates
+        const canvasTop = imageY + (eqBounds.top - cropTop) * scale;
+        const canvasHeight = eqBounds.height * scale;
+        const canvasLeft = imageX + (eqBounds.left - cropLeft) * scale;
+        const canvasRight = imageX + (eqBounds.left + eqBounds.width - cropLeft) * scale;
+
+        // Calculate vertical center of equipment
+        const naturalY = canvasTop + canvasHeight / 2;
+
+        allLabels.push({
+          eq,
+          canvasTop,
+          canvasHeight,
+          canvasLeft,
+          canvasRight,
+          naturalY,
+          adjustedY: naturalY,
+          side: 'right', // Will be assigned later
+        });
+      });
+
+      // Sort by Y position (top to bottom)
+      allLabels.sort((a, b) => a.naturalY - b.naturalY);
+
+      // Alternate labels between left and right sides
+      allLabels.forEach((label, index) => {
+        label.side = index % 2 === 0 ? 'right' : 'left';
+      });
+
+      // Separate into left and right groups
+      const leftLabels = allLabels.filter((l) => l.side === 'left');
+      const rightLabels = allLabels.filter((l) => l.side === 'right');
+
+      // Adjust Y positions to prevent overlap (separately for each side)
+      const minLabelSpacing = 32; // Minimum vertical space between label centers
+      const adjustOverlaps = (labels: LabelData[]) => {
+        for (let i = 1; i < labels.length; i++) {
+          const prev = labels[i - 1];
+          const curr = labels[i];
+          const minY = prev.adjustedY + minLabelSpacing;
+          if (curr.adjustedY < minY) {
+            curr.adjustedY = minY;
           }
         }
-        labelY = Math.min(maxY, Math.max(minY, labelY));
-        let labelX = portX - textWidth / 2;
-        const minX = imageX + 2;
-        const maxX = imageX + renderWidth - textWidth - 2;
-        if (labelX < minX) labelX = minX;
-        if (labelX > maxX) labelX = maxX;
+      };
 
-        context.strokeText(label, labelX, labelY);
-        context.fillText(label, labelX, labelY);
-      });
+      adjustOverlaps(leftLabels);
+      adjustOverlaps(rightLabels);
+
+      // Draw labels
+      const drawLabel = (data: LabelData) => {
+        const { eq, canvasTop, canvasHeight, canvasLeft, canvasRight, adjustedY, side } = data;
+        const equipmentCenterY = canvasTop + canvasHeight / 2;
+
+        // Calculate label X position based on side
+        const isLeft = side === 'left';
+        const labelX = isLeft
+          ? layout.leftLabelAreaWidth - labelPadding
+          : layout.leftLabelAreaWidth + layout.labelGap + layout.rackImageWidth + layout.labelGap + labelPadding;
+
+        // Draw connecting line from equipment edge to label
+        context.strokeStyle = '#9ca3af';
+        context.lineWidth = 1;
+        context.beginPath();
+
+        const equipmentEdgeX = isLeft ? canvasLeft - 2 : canvasRight + 2;
+        const lineEndX = isLeft ? labelX + 8 : labelX - 8;
+
+        context.moveTo(equipmentEdgeX, equipmentCenterY);
+
+        if (Math.abs(adjustedY - equipmentCenterY) > 2) {
+          // Draw stepped line when label is offset
+          const midX = equipmentEdgeX + (lineEndX - equipmentEdgeX) * 0.4;
+          context.lineTo(midX, equipmentCenterY);
+          context.lineTo(midX, adjustedY);
+          context.lineTo(lineEndX, adjustedY);
+        } else {
+          context.lineTo(lineEndX, equipmentCenterY);
+        }
+        context.stroke();
+
+        // Set text alignment based on side
+        context.textAlign = isLeft ? 'right' : 'left';
+
+        // Draw model name (bold)
+        context.font = modelFont;
+        context.fillStyle = '#111827';
+        context.textBaseline = 'middle';
+        const modelY = eq.customLabel ? adjustedY - 8 : adjustedY;
+        context.fillText(eq.model, labelX, modelY);
+
+        // Draw custom label underneath if set
+        if (eq.customLabel) {
+          context.font = customLabelFont;
+          context.fillStyle = '#4b5563';
+          context.fillText(eq.customLabel, labelX, adjustedY + 8);
+        }
+      };
+
+      // Draw all labels
+      leftLabels.forEach(drawLabel);
+      rightLabels.forEach(drawLabel);
+
+      // Reset text alignment
+      context.textAlign = 'left';
     }
-
-    const legendX = layout.leftWidth;
-    const legendPadding = 16;
-    let legendY = legendPadding;
-    layout.legendLines.forEach((line) => {
-      if (line.spacer) {
-        legendY += line.lineHeight;
-        return;
-      }
-      context.font = line.font;
-      context.fillStyle = line.color ?? '#111827';
-      context.textBaseline = 'top';
-      context.fillText(line.text, legendX + legendPadding, legendY);
-      legendY += line.lineHeight;
-    });
 
     return {
       canvas: exportCanvas,

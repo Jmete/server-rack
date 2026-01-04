@@ -11,10 +11,11 @@ export function ExportCameraController() {
   const isExporting = useUIStore((state) => state.isExporting);
   const setExportCameraReady = useUIStore((state) => state.setExportCameraReady);
   const bumpExportGeneration = useUIStore((state) => state.bumpExportGeneration);
-  const { camera, size } = useThree();
+  const { camera, size, gl } = useThree();
   const controls = useThree((state) => state.controls) as { target?: THREE.Vector3; update?: () => void } | undefined;
   const previous = useRef<{ position: THREE.Vector3; target?: THREE.Vector3 } | null>(null);
   const framesSinceExport = useRef(0);
+  const originalDPR = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isExporting) {
@@ -67,6 +68,30 @@ export function ExportCameraController() {
 
     bumpExportGeneration();
   }, [camera, controls, isExporting, rackSize, size.height, size.width]);
+
+  // Increase pixel ratio for high-resolution export
+  useEffect(() => {
+    if (!isExporting) {
+      // Restore original pixel ratio when export ends
+      if (originalDPR.current !== null) {
+        gl.setPixelRatio(originalDPR.current);
+        originalDPR.current = null;
+      }
+      return;
+    }
+
+    // Store original pixel ratio and increase to 4x for export
+    originalDPR.current = gl.getPixelRatio();
+    gl.setPixelRatio(4);
+
+    return () => {
+      // Cleanup: restore original pixel ratio
+      if (originalDPR.current !== null) {
+        gl.setPixelRatio(originalDPR.current);
+        originalDPR.current = null;
+      }
+    };
+  }, [isExporting, gl]);
 
   useFrame(() => {
     if (!isExporting) return;
