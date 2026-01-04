@@ -5,17 +5,18 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Grid, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { Rack } from './Rack';
-import { Equipment } from './Equipment';
+import { EquipmentRenderer } from './EquipmentRenderer';
 import { RackDropBounds } from './RackDropBounds';
 import { RackHoverHighlight } from './RackHoverHighlight';
 import { CableManager } from './cables/CableManager';
 import { PortLabelProjector } from './PortLabelProjector';
 import { ExportCameraController } from './ExportCameraController';
 import { useRackStore, useUIStore } from '@/stores';
-import { FRAME_THICKNESS_MM, RACK_CONSTANTS, RACK_DEPTH_MM, mmToScene, uToScene } from '@/constants';
+import { FRAME_THICKNESS_MM, RACK_CONSTANTS, mmToScene, uToScene } from '@/constants';
 
 function InitialCameraSetup() {
   const rackSize = useRackStore((state) => state.rack.config.size);
+  const rackDepthMm = useRackStore((state) => state.rack.config.depth);
   const { camera, size } = useThree();
   const controls = useThree((state) => state.controls) as { target?: THREE.Vector3; update?: () => void } | undefined;
   const initialized = useRef(false);
@@ -42,7 +43,7 @@ function InitialCameraSetup() {
     const viewportFill = 0.75;
     const heightDistance = (totalHeight / 2) / (Math.tan(vFov / 2) * viewportFill);
     const widthDistance = (rackWidth / 2) / (Math.tan(hFov / 2) * viewportFill);
-    const rackDepth = mmToScene(RACK_DEPTH_MM);
+    const rackDepth = mmToScene(rackDepthMm);
     const distance = (Math.max(heightDistance, widthDistance) + rackDepth / 2) * 1.05;
 
     camera.position.set(0, target.y, distance);
@@ -130,7 +131,7 @@ export function Scene() {
 
       {/* Equipment in Rack */}
       {equipment.map((eq) => (
-        <Equipment
+        <EquipmentRenderer
           key={eq.instanceId}
           equipment={eq}
           isSelected={eq.instanceId === selectedEquipmentId}

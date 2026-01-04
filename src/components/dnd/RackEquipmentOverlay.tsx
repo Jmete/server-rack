@@ -36,7 +36,7 @@ function RackEquipmentHandle({
   });
 
   const { 'aria-describedby': _ariaDescribedBy, ...safeAttributes } = attributes;
-  const { onPointerDown, ...restListeners } = listeners;
+  const { onPointerDown, ...restListeners } = listeners ?? {};
 
   return (
     <div

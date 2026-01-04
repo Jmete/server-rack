@@ -3,14 +3,14 @@
 import { Equipment as EquipmentType } from '@/types';
 import { UDMProRouter, USWProSwitch, PatchPanel, RackUPS, UKPDU } from './equipment';
 
-interface EquipmentProps {
+interface EquipmentRendererProps {
   equipment: EquipmentType;
   onClick?: () => void;
   isSelected?: boolean;
 }
 
 // Equipment component factory - renders the correct 3D model based on equipment type
-export function Equipment({ equipment, onClick, isSelected }: EquipmentProps) {
+export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentRendererProps) {
   switch (equipment.type) {
     case 'router':
       return (

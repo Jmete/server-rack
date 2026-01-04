@@ -127,6 +127,9 @@ export function PropertiesPanel() {
     );
   }
 
+  // TypeScript guard: at this point selected must be non-null
+  if (!selected) return null;
+
   return (
     <Card>
       <CardHeader className="pb-2">

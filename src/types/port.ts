@@ -43,6 +43,9 @@ export interface Port extends PortDefinition {
   status: PortStatus;
 }
 
+// Alias for backwards compatibility
+export type PortInstance = Port;
+
 // Helper to create port instances from definitions
 export function createPortInstances(
   definitions: PortDefinition[],

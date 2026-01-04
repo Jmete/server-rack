@@ -31,7 +31,7 @@ export function RackDropZones() {
 
   const dragData = active?.data.current as
     | { type: 'catalog'; equipmentId: string }
-    | { type: 'rack'; instanceId: string; heightU: number }
+    | { type: 'rack'; instanceId: string; heightU: number; slotPosition: number }
     | undefined;
 
   const draggedDefinition = useMemo(() => {
