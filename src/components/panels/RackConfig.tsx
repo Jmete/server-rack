@@ -18,6 +18,7 @@ export function RackConfig() {
   const rackName = useRackStore((state) => state.rack.config.name);
   const setRackSize = useRackStore((state) => state.setRackSize);
   const setRackDepth = useRackStore((state) => state.setRackDepth);
+  const setRackName = useRackStore((state) => state.setRackName);
   const equipmentCount = useRackStore((state) => state.equipment.length);
 
   // Convert depth from mm to inches for display
@@ -45,6 +46,10 @@ export function RackConfig() {
     }
   };
 
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRackName(e.target.value);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -53,7 +58,13 @@ export function RackConfig() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <label className="text-xs text-muted-foreground">Rack Name</label>
-          <div className="text-sm font-medium">{rackName}</div>
+          <Input
+            type="text"
+            value={rackName}
+            onChange={handleNameChange}
+            className="h-8"
+            placeholder="Enter rack name"
+          />
         </div>
 
         <div className="space-y-2">

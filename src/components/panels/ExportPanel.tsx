@@ -48,12 +48,18 @@ function downloadBlob(filename: string, blob: Blob) {
 
 export function ExportPanel() {
   const equipment = useRackStore((state) => state.equipment);
+  const rackName = useRackStore((state) => state.rack.config.name);
   const importConfig = useRackStore((state) => state.importConfig);
   const exportConfig = useRackStore((state) => state.exportConfig);
   const cables = useConnectionStore((state) => state.cables);
   const importCables = useConnectionStore((state) => state.importCables);
   const setIsExporting = useUIStore((state) => state.setIsExporting);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Create a sanitized filename from rack name
+  const sanitizeFilename = (name: string) => {
+    return name.replace(/[^a-zA-Z0-9-_]/g, '-').replace(/-+/g, '-').toLowerCase();
+  };
 
   const equipmentLegend: LegendEquipment[] = equipment
     .slice()
@@ -87,7 +93,8 @@ export function ExportPanel() {
       cables,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    downloadBlob('rack-config.json', blob);
+    const filename = `${sanitizeFilename(rackName)}-config.json`;
+    downloadBlob(filename, blob);
   };
 
   const handleImportJson = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +113,8 @@ export function ExportPanel() {
 
   const handleExportCsv = () => {
     const rows = [
+      ['# Rack Name', rackName],
+      [],
       [
         'cableId',
         'cableLabel',
@@ -166,7 +175,8 @@ export function ExportPanel() {
       )
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
-    downloadBlob('rack-cables.csv', blob);
+    const filename = `${sanitizeFilename(rackName)}-cables.csv`;
+    downloadBlob(filename, blob);
   };
 
 
@@ -244,14 +254,16 @@ export function ExportPanel() {
     const labelPadding = 16; // Outer padding for labels
     const labelAreaWidth = Math.max(180, maxLabelWidth + labelPadding);
     const rackImageWidth = Math.round(baseExportHeight * 0.4); // Rack takes ~40% of height as width
+    const titleHeight = 60; // Space for rack name title at top
 
     const layout = {
       exportWidth: labelAreaWidth + labelGap + rackImageWidth + labelGap + labelAreaWidth,
-      exportHeight: baseExportHeight,
+      exportHeight: baseExportHeight + titleHeight,
       leftLabelAreaWidth: labelAreaWidth,
       rackImageWidth,
       rightLabelAreaWidth: labelAreaWidth,
       labelGap,
+      titleHeight,
     };
 
     // Create high-resolution canvas
@@ -267,17 +279,27 @@ export function ExportPanel() {
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, layout.exportWidth, layout.exportHeight);
 
-    // Calculate rack image position (centered between label areas)
+    // Draw rack name title at the top
+    const titleFont = `700 24px Arial`;
+    context.font = titleFont;
+    context.fillStyle = '#111827';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.fillText(rackName, layout.exportWidth / 2, layout.titleHeight / 2);
+    context.textAlign = 'left'; // Reset alignment
+
+    // Calculate rack image position (centered between label areas, below title)
+    const contentAreaHeight = layout.exportHeight - layout.titleHeight;
     const rackAreaStart = layout.leftLabelAreaWidth + layout.labelGap;
-    const rackTargetHeight = layout.exportHeight * 0.9;
-    const maxRenderHeight = layout.exportHeight * 0.95;
+    const rackTargetHeight = contentAreaHeight * 0.9;
+    const maxRenderHeight = contentAreaHeight * 0.95;
     const maxWidth = layout.rackImageWidth * 0.95;
     let scale = rackTargetHeight / Math.max(1, bounds.height);
     scale = Math.min(scale, maxWidth / Math.max(1, cropWidth), maxRenderHeight / Math.max(1, cropHeight));
     const renderWidth = Math.max(1, Math.round(cropWidth * scale));
     const renderHeight = Math.max(1, Math.round(cropHeight * scale));
     const imageX = rackAreaStart + Math.round((layout.rackImageWidth - renderWidth) / 2);
-    const imageY = Math.round((layout.exportHeight - renderHeight) / 2);
+    const imageY = layout.titleHeight + Math.round((contentAreaHeight - renderHeight) / 2);
 
     context.drawImage(rackCanvas, imageX, imageY, renderWidth, renderHeight);
 
@@ -458,10 +480,12 @@ export function ExportPanel() {
     }
     if (!layout) return;
 
+    const baseFilename = sanitizeFilename(rackName);
+
     if (format === 'png') {
       layout.canvas.toBlob((blob) => {
         if (!blob) return;
-        downloadBlob('rack-export.png', blob);
+        downloadBlob(`${baseFilename}-export.png`, blob);
       });
       return;
     }
@@ -473,7 +497,7 @@ export function ExportPanel() {
       format: [layout.width, layout.height],
     });
     pdf.addImage(imgData, 'PNG', 0, 0, layout.width, layout.height);
-    pdf.save('rack-export.pdf');
+    pdf.save(`${baseFilename}-export.pdf`);
   };
 
   return (
