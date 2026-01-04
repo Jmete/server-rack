@@ -3,21 +3,30 @@
 import { ReactNode } from 'react';
 
 interface AppLayoutProps {
+  header: ReactNode;
+  leftPanel: ReactNode;
   viewport: ReactNode;
-  sidebar: ReactNode;
+  rightPanel: ReactNode;
 }
 
-export function AppLayout({ viewport, sidebar }: AppLayoutProps) {
+export function AppLayout({ header, leftPanel, viewport, rightPanel }: AppLayoutProps) {
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background">
-      {/* Viewport - 70% */}
-      <div className="flex-[7] h-full border-r border-border">
-        {viewport}
-      </div>
+    <div className="flex flex-col h-screen w-screen overflow-hidden bg-background">
+      {/* Header */}
+      {header}
 
-      {/* Sidebar - 30% */}
-      <div className="flex-[3] h-full overflow-y-auto">
-        {sidebar}
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Panel - Equipment Catalog */}
+        {leftPanel}
+
+        {/* Viewport - 3D Canvas */}
+        <div className="flex-1 h-full overflow-hidden relative">
+          {viewport}
+        </div>
+
+        {/* Right Panel - Properties/Summary */}
+        {rightPanel}
       </div>
     </div>
   );

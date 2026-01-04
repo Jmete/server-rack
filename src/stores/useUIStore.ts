@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 
-export type SidebarTab = 'catalog' | 'properties' | 'connections' | 'export';
-
 interface UIState {
   // Selection state
   selectedEquipmentId: string | null;
@@ -10,8 +8,9 @@ interface UIState {
   selectedPortId: string | null;
   hoveredEquipmentId: string | null;
 
-  // Sidebar state
-  sidebarTab: SidebarTab;
+  // Modal state
+  rackSettingsModalOpen: boolean;
+  exportModalOpen: boolean;
 
   // Camera state
   cameraPosition: [number, number, number];
@@ -36,8 +35,9 @@ interface UIState {
   selectPort: (id: string | null) => void;
   setHoveredEquipment: (id: string | null) => void;
 
-  // Sidebar actions
-  setSidebarTab: (tab: SidebarTab) => void;
+  // Modal actions
+  setRackSettingsModalOpen: (open: boolean) => void;
+  setExportModalOpen: (open: boolean) => void;
 
   // Camera actions
   setCameraPosition: (position: [number, number, number]) => void;
@@ -74,7 +74,8 @@ export const useUIStore = create<UIState>((set) => ({
   hoveredPortId: null,
   selectedPortId: null,
   hoveredEquipmentId: null,
-  sidebarTab: 'catalog',
+  rackSettingsModalOpen: false,
+  exportModalOpen: false,
   cameraPosition: defaultCameraPosition,
   cameraTarget: defaultCameraTarget,
   isDragging: false,
@@ -117,9 +118,13 @@ export const useUIStore = create<UIState>((set) => ({
     set({ hoveredEquipmentId: id });
   },
 
-  // Sidebar actions
-  setSidebarTab: (tab: SidebarTab) => {
-    set({ sidebarTab: tab });
+  // Modal actions
+  setRackSettingsModalOpen: (open: boolean) => {
+    set({ rackSettingsModalOpen: open });
+  },
+
+  setExportModalOpen: (open: boolean) => {
+    set({ exportModalOpen: open });
   },
 
   // Camera actions

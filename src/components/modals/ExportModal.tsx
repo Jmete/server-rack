@@ -2,8 +2,15 @@
 
 import { useRef } from 'react';
 import jsPDF from 'jspdf';
+import { Download, Upload, FileJson, FileImage, FileText, FileSpreadsheet } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useConnectionStore, useRackStore, useUIStore } from '@/stores';
 import { PORT_TYPE_LABELS } from '@/types/port';
 
@@ -21,7 +28,6 @@ type LegendEquipment = {
   customLabel?: string;
   ports: LegendPort[];
 };
-
 
 function formatPortIdentifier(port: LegendPort) {
   const digits = port.label.match(/\d+/);
@@ -46,7 +52,7 @@ function downloadBlob(filename: string, blob: Blob) {
   URL.revokeObjectURL(url);
 }
 
-export function ExportPanel() {
+export function ExportModal() {
   const equipment = useRackStore((state) => state.equipment);
   const rackName = useRackStore((state) => state.rack.config.name);
   const importConfig = useRackStore((state) => state.importConfig);
@@ -54,9 +60,10 @@ export function ExportPanel() {
   const cables = useConnectionStore((state) => state.cables);
   const importCables = useConnectionStore((state) => state.importCables);
   const setIsExporting = useUIStore((state) => state.setIsExporting);
+  const isOpen = useUIStore((state) => state.exportModalOpen);
+  const setOpen = useUIStore((state) => state.setExportModalOpen);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Create a sanitized filename from rack name
   const sanitizeFilename = (name: string) => {
     return name.replace(/[^a-zA-Z0-9-_]/g, '-').replace(/-+/g, '-').toLowerCase();
   };
@@ -95,6 +102,7 @@ export function ExportPanel() {
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const filename = `${sanitizeFilename(rackName)}-config.json`;
     downloadBlob(filename, blob);
+    setOpen(false);
   };
 
   const handleImportJson = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,6 +117,7 @@ export function ExportPanel() {
       importCables(payload.cables);
     }
     event.target.value = '';
+    setOpen(false);
   };
 
   const handleExportCsv = () => {
@@ -177,8 +186,8 @@ export function ExportPanel() {
     const blob = new Blob([csv], { type: 'text/csv' });
     const filename = `${sanitizeFilename(rackName)}-cables.csv`;
     downloadBlob(filename, blob);
+    setOpen(false);
   };
-
 
   const buildExportCanvas = async () => {
     const canvas = document.querySelector('canvas');
@@ -221,22 +230,17 @@ export function ExportPanel() {
     );
 
     const baseExportHeight = Math.round(bounds.height / 0.9);
-
-    // Resolution multiplier for higher quality export (2x for retina-quality)
     const dpiScale = 2;
 
-    // Create a temporary canvas to measure text
     const measureCanvas = document.createElement('canvas');
     const measureContext = measureCanvas.getContext('2d');
     if (!measureContext) return null;
 
-    // Font sizes (will be scaled by dpiScale when drawing)
     const basemodelFontSize = 14;
     const baseCustomLabelFontSize = 12;
     const modelFont = `600 ${basemodelFontSize}px Arial`;
     const customLabelFont = `400 ${baseCustomLabelFontSize}px Arial`;
 
-    // Calculate maximum label width needed for inline equipment labels
     let maxLabelWidth = 0;
     equipment.forEach((eq) => {
       measureContext.font = modelFont;
@@ -249,12 +253,11 @@ export function ExportPanel() {
       maxLabelWidth = Math.max(maxLabelWidth, labelWidth);
     });
 
-    // Layout: [left labels] + [rack image] + [right labels] (in logical pixels)
-    const labelGap = 40; // Gap between rack and labels
-    const labelPadding = 16; // Outer padding for labels
+    const labelGap = 40;
+    const labelPadding = 16;
     const labelAreaWidth = Math.max(180, maxLabelWidth + labelPadding);
-    const rackImageWidth = Math.round(baseExportHeight * 0.4); // Rack takes ~40% of height as width
-    const titleHeight = 60; // Space for rack name title at top
+    const rackImageWidth = Math.round(baseExportHeight * 0.4);
+    const titleHeight = 60;
 
     const layout = {
       exportWidth: labelAreaWidth + labelGap + rackImageWidth + labelGap + labelAreaWidth,
@@ -266,29 +269,25 @@ export function ExportPanel() {
       titleHeight,
     };
 
-    // Create high-resolution canvas
     const exportCanvas = document.createElement('canvas');
     exportCanvas.width = layout.exportWidth * dpiScale;
     exportCanvas.height = layout.exportHeight * dpiScale;
     const context = exportCanvas.getContext('2d');
     if (!context) return null;
 
-    // Scale all drawing operations for high DPI
     context.scale(dpiScale, dpiScale);
 
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, layout.exportWidth, layout.exportHeight);
 
-    // Draw rack name title at the top
     const titleFont = `700 24px Arial`;
     context.font = titleFont;
     context.fillStyle = '#111827';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
     context.fillText(rackName, layout.exportWidth / 2, layout.titleHeight / 2);
-    context.textAlign = 'left'; // Reset alignment
+    context.textAlign = 'left';
 
-    // Calculate rack image position (centered between label areas, below title)
     const contentAreaHeight = layout.exportHeight - layout.titleHeight;
     const rackAreaStart = layout.leftLabelAreaWidth + layout.labelGap;
     const rackTargetHeight = contentAreaHeight * 0.9;
@@ -303,13 +302,10 @@ export function ExportPanel() {
 
     context.drawImage(rackCanvas, imageX, imageY, renderWidth, renderHeight);
 
-    // Draw inline equipment labels alternating left and right
     const equipmentScreenBounds = uiState.equipmentScreenBounds;
     if (equipmentScreenBounds) {
-      // Create a map for quick equipment lookup by instanceId
       const equipmentMap = new Map(equipment.map((eq) => [eq.instanceId, eq]));
 
-      // Collect all label data with their natural Y positions
       type LabelData = {
         eq: typeof equipment[0];
         canvasTop: number;
@@ -326,7 +322,6 @@ export function ExportPanel() {
         const eq = equipmentMap.get(eqBounds.instanceId);
         if (!eq) return;
 
-        // Check if equipment bounds are within crop area
         if (
           eqBounds.left + eqBounds.width < cropLeft ||
           eqBounds.left > cropLeft + cropWidth ||
@@ -336,13 +331,11 @@ export function ExportPanel() {
           return;
         }
 
-        // Transform equipment bounds to export canvas coordinates
         const canvasTop = imageY + (eqBounds.top - cropTop) * scale;
         const canvasHeight = eqBounds.height * scale;
         const canvasLeft = imageX + (eqBounds.left - cropLeft) * scale;
         const canvasRight = imageX + (eqBounds.left + eqBounds.width - cropLeft) * scale;
 
-        // Calculate vertical center of equipment
         const naturalY = canvasTop + canvasHeight / 2;
 
         allLabels.push({
@@ -353,24 +346,20 @@ export function ExportPanel() {
           canvasRight,
           naturalY,
           adjustedY: naturalY,
-          side: 'right', // Will be assigned later
+          side: 'right',
         });
       });
 
-      // Sort by Y position (top to bottom)
       allLabels.sort((a, b) => a.naturalY - b.naturalY);
 
-      // Alternate labels between left and right sides
       allLabels.forEach((label, index) => {
         label.side = index % 2 === 0 ? 'right' : 'left';
       });
 
-      // Separate into left and right groups
       const leftLabels = allLabels.filter((l) => l.side === 'left');
       const rightLabels = allLabels.filter((l) => l.side === 'right');
 
-      // Adjust Y positions to prevent overlap (separately for each side)
-      const minLabelSpacing = 32; // Minimum vertical space between label centers
+      const minLabelSpacing = 32;
       const adjustOverlaps = (labels: LabelData[]) => {
         for (let i = 1; i < labels.length; i++) {
           const prev = labels[i - 1];
@@ -385,18 +374,15 @@ export function ExportPanel() {
       adjustOverlaps(leftLabels);
       adjustOverlaps(rightLabels);
 
-      // Draw labels
       const drawLabel = (data: LabelData) => {
         const { eq, canvasTop, canvasHeight, canvasLeft, canvasRight, adjustedY, side } = data;
         const equipmentCenterY = canvasTop + canvasHeight / 2;
 
-        // Calculate label X position based on side
         const isLeft = side === 'left';
         const labelX = isLeft
           ? layout.leftLabelAreaWidth - labelPadding
           : layout.leftLabelAreaWidth + layout.labelGap + layout.rackImageWidth + layout.labelGap + labelPadding;
 
-        // Draw connecting line from equipment edge to label
         context.strokeStyle = '#9ca3af';
         context.lineWidth = 1;
         context.beginPath();
@@ -407,7 +393,6 @@ export function ExportPanel() {
         context.moveTo(equipmentEdgeX, equipmentCenterY);
 
         if (Math.abs(adjustedY - equipmentCenterY) > 2) {
-          // Draw stepped line when label is offset
           const midX = equipmentEdgeX + (lineEndX - equipmentEdgeX) * 0.4;
           context.lineTo(midX, equipmentCenterY);
           context.lineTo(midX, adjustedY);
@@ -417,17 +402,14 @@ export function ExportPanel() {
         }
         context.stroke();
 
-        // Set text alignment based on side
         context.textAlign = isLeft ? 'right' : 'left';
 
-        // Draw model name (bold)
         context.font = modelFont;
         context.fillStyle = '#111827';
         context.textBaseline = 'middle';
         const modelY = eq.customLabel ? adjustedY - 8 : adjustedY;
         context.fillText(eq.model, labelX, modelY);
 
-        // Draw custom label underneath if set
         if (eq.customLabel) {
           context.font = customLabelFont;
           context.fillStyle = '#4b5563';
@@ -435,11 +417,9 @@ export function ExportPanel() {
         }
       };
 
-      // Draw all labels
       leftLabels.forEach(drawLabel);
       rightLabels.forEach(drawLabel);
 
-      // Reset text alignment
       context.textAlign = 'left';
     }
 
@@ -487,6 +467,7 @@ export function ExportPanel() {
         if (!blob) return;
         downloadBlob(`${baseFilename}-export.png`, blob);
       });
+      setOpen(false);
       return;
     }
 
@@ -498,31 +479,80 @@ export function ExportPanel() {
     });
     pdf.addImage(imgData, 'PNG', 0, 0, layout.width, layout.height);
     pdf.save(`${baseFilename}-export.pdf`);
+    setOpen(false);
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Export Options</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          <Button size="sm" onClick={handleExportJson}>Export JSON</Button>
-          <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>
-            Import JSON
-          </Button>
-          <Button size="sm" onClick={() => handleExportImage('png')}>Export PNG</Button>
-          <Button size="sm" onClick={() => handleExportImage('pdf')}>Export PDF</Button>
-          <Button size="sm" onClick={handleExportCsv}>Export CSV</Button>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Export / Import</DialogTitle>
+          <DialogDescription>
+            Export your rack configuration or import an existing one.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Export Section */}
+          <div className="space-y-2">
+            <div className="text-sm font-medium">Export</div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-1.5"
+                onClick={handleExportJson}
+              >
+                <FileJson className="h-5 w-5" />
+                <span className="text-xs">JSON</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-1.5"
+                onClick={() => handleExportImage('png')}
+              >
+                <FileImage className="h-5 w-5" />
+                <span className="text-xs">PNG</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-1.5"
+                onClick={() => handleExportImage('pdf')}
+              >
+                <FileText className="h-5 w-5" />
+                <span className="text-xs">PDF</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-1.5"
+                onClick={handleExportCsv}
+              >
+                <FileSpreadsheet className="h-5 w-5" />
+                <span className="text-xs">CSV</span>
+              </Button>
+            </div>
+          </div>
+
+          {/* Import Section */}
+          <div className="space-y-2 pt-2 border-t border-border">
+            <div className="text-sm font-medium">Import</div>
+            <Button
+              variant="outline"
+              className="w-full h-auto py-3 flex items-center justify-center gap-2"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Upload className="h-5 w-5" />
+              <span>Import JSON Configuration</span>
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={handleImportJson}
+            />
+          </div>
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json"
-          className="hidden"
-          onChange={handleImportJson}
-        />
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 }
