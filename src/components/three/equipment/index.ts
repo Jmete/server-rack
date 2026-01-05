@@ -7,3 +7,4 @@ export { PatchPanel } from './PatchPanel';
 export { RackUPS } from './RackUPS';
 export { UKPDU } from './UKPDU';
 export { UCM6208 } from './UCM6208';
+export { T1600G52PS } from './T1600G52PS';
