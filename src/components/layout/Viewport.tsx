@@ -24,8 +24,9 @@ export function Viewport() {
     if (stored !== null) {
       setIsDarkBackground(stored === 'dark');
     } else {
-      // Default: dark background for dark theme, light background for light theme
-      setIsDarkBackground(resolvedTheme === 'dark');
+      // Default: dark background for dark/onyx themes, light background for light/white themes
+      const isDarkTheme = resolvedTheme === 'dark' || resolvedTheme === 'onyx';
+      setIsDarkBackground(isDarkTheme);
     }
     setInitialized(true);
   }, [mounted, resolvedTheme]);

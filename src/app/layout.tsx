@@ -18,6 +18,19 @@ export const metadata: Metadata = {
   description: "3D drag-and-drop server rack designer with cable management",
 };
 
+// Inline script to prevent theme flash on page load
+const themeScript = `
+(function() {
+  const stored = localStorage.getItem('server-rack-theme');
+  const theme = stored || 'white';
+  let resolved = theme;
+  if (theme === 'system') {
+    resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.classList.add(resolved);
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,6 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
