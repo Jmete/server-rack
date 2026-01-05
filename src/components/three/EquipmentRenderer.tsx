@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -13,6 +13,15 @@ interface EquipmentRendererProps {
 export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentRendererProps) {
   switch (equipment.type) {
     case 'router':
+      if (equipment.id === 'fortigate-100f') {
+        return (
+          <FortiGate100F
+            equipment={equipment}
+            onClick={onClick}
+            isSelected={isSelected}
+          />
+        );
+      }
       return (
         <UDMProRouter
           equipment={equipment}

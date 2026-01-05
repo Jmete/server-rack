@@ -64,6 +64,9 @@ export function Port({
     if (!connectionMode.active) return;
 
     if (!connectionMode.sourcePortId) {
+      if (port.type === 'rj45-console') {
+        return;
+      }
       if (port.type === 'sfp-plus') {
         setCableType('fiber-lc');
       } else if (port.type === 'rj45-lan' || port.type === 'rj45-wan') {

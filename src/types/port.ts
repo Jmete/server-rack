@@ -1,6 +1,7 @@
 export type PortType =
   | 'rj45-lan'
   | 'rj45-wan'
+  | 'rj45-console'
   | 'sfp-plus'
   | 'usb'
   | 'power-iec-c13'
@@ -66,6 +67,7 @@ export function createPortInstances(
 export const PORT_TYPE_LABELS: Record<PortType, string> = {
   'rj45-lan': 'RJ45 LAN',
   'rj45-wan': 'RJ45 WAN',
+  'rj45-console': 'RJ45 Console',
   'sfp-plus': 'SFP+',
   'usb': 'USB',
   'power-iec-c13': 'IEC C13',
@@ -79,6 +81,7 @@ export const PORT_TYPE_LABELS: Record<PortType, string> = {
 export const PORT_TYPE_COLORS: Record<PortType, string> = {
   'rj45-lan': '#22c55e', // green
   'rj45-wan': '#f59e0b', // amber
+  'rj45-console': '#64748b', // slate
   'sfp-plus': '#3b82f6', // blue
   'usb': '#6b7280', // gray
   'power-iec-c13': '#ef4444', // red

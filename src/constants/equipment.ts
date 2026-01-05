@@ -89,6 +89,177 @@ export const UDM_PRO: EquipmentDefinition = {
   ],
 };
 
+// FortiGate 100F Firewall
+export const FORTIGATE_100F: EquipmentDefinition = {
+  id: 'fortigate-100f',
+  type: 'router',
+  name: 'FortiGate 100F',
+  model: 'FortiGate 100F',
+  manufacturer: 'Fortinet',
+  heightU: 1,
+  width: 442.4,
+  depth: 330,
+  color: EQUIPMENT_COLORS.STEEL,
+  ports: [
+    // USB port (front)
+    {
+      id: 'usb-1',
+      type: 'usb',
+      label: 'USB',
+      position: { x: 60, y: 22, z: 0 },
+      speed: 'n/a',
+    },
+    // Console RJ45 port
+    {
+      id: 'console-1',
+      type: 'rj45-console',
+      label: 'Console',
+      position: { x: 115, y: 22, z: 0 },
+      speed: 'n/a',
+    },
+    // MGMT/DMZ ports (2x RJ45)
+    {
+      id: 'dmz-1',
+      type: 'rj45-lan',
+      label: 'DMZ',
+      position: { x: 138, y: 28, z: 0 },
+      speed: '1G',
+    },
+    {
+      id: 'mgmt-1',
+      type: 'rj45-lan',
+      label: 'MGMT',
+      position: { x: 138, y: 16, z: 0 },
+      speed: '1G',
+    },
+    // WAN ports (2x RJ45)
+    {
+      id: 'wan-1',
+      type: 'rj45-wan',
+      label: 'WAN1',
+      position: { x: 161, y: 28, z: 0 },
+      speed: '1G',
+    },
+    {
+      id: 'wan-2',
+      type: 'rj45-wan',
+      label: 'WAN2',
+      position: { x: 161, y: 16, z: 0 },
+      speed: '1G',
+    },
+    // HA ports (2x RJ45)
+    {
+      id: 'ha-1',
+      type: 'rj45-lan',
+      label: 'HA1',
+      position: { x: 176, y: 28, z: 0 },
+      speed: '1G',
+    },
+    {
+      id: 'ha-2',
+      type: 'rj45-lan',
+      label: 'HA2',
+      position: { x: 176, y: 16, z: 0 },
+      speed: '1G',
+    },
+    // LAN ports 1-4 (part of the first 8x RJ45 block)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `lan-${i + 1}`,
+      type: 'rj45-lan' as const,
+      label: `${i + 1}`,
+      position: {
+        x: 191 + Math.floor(i / 2) * 15,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '1G' as const,
+      row: i % 2,
+      column: Math.floor(i / 2),
+    })),
+    // LAN ports 5-12 (second 8x RJ45 block)
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: `lan-${i + 5}`,
+      type: 'rj45-lan' as const,
+      label: `${i + 5}`,
+      position: {
+        x: 214 + Math.floor(i / 2) * 15,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '1G' as const,
+      row: i % 2,
+      column: Math.floor(i / 2),
+    })),
+    // 2x 10G SFP+ FortiLink
+    {
+      id: 'fortilink-1',
+      type: 'sfp-plus',
+      label: 'X1',
+      position: { x: 267, y: 28, z: 0 },
+      speed: '10G',
+    },
+    {
+      id: 'fortilink-2',
+      type: 'sfp-plus',
+      label: 'X2',
+      position: { x: 267, y: 16, z: 0 },
+      speed: '10G',
+    },
+    // 4x GE SFP ports (13-16)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `sfp-${i + 13}`,
+      type: 'sfp-plus' as const,
+      label: `${i + 13}`,
+      position: {
+        x: 287 + Math.floor(i / 2) * 12,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '1G' as const,
+    })),
+    // 4x GE SFP shared media pairs (17-20)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `shared-sfp-${i + 17}`,
+      type: 'sfp-plus' as const,
+      label: `${i + 17}`,
+      position: {
+        x: 311 + Math.floor(i / 2) * 12,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '1G' as const,
+    })),
+    // 4x GE RJ45 shared media pairs (17-20)
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `shared-rj45-${i + 17}`,
+      type: 'rj45-lan' as const,
+      label: `${i + 17}`,
+      position: {
+        x: 331 + Math.floor(i / 2) * 23,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '1G' as const,
+    })),
+    // Dual AC power inlets (rear)
+    {
+      id: 'power-1',
+      type: 'power-iec-c14',
+      label: 'PSU 1',
+      position: { x: 30, y: 22, z: 330 },
+      speed: 'power',
+    },
+    {
+      id: 'power-2',
+      type: 'power-iec-c14',
+      label: 'PSU 2',
+      position: { x: 412, y: 22, z: 330 },
+      speed: 'power',
+    },
+  ],
+  features: [],
+};
+
 // USW Pro 48 PoE Switch
 export const USW_PRO_48_POE: EquipmentDefinition = {
   id: 'usw-pro-48-poe',
@@ -494,6 +665,7 @@ export const UCM6208: EquipmentDefinition = {
 // Export all equipment as catalog
 export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
+  FORTIGATE_100F,
   USW_PRO_48_POE,
   USW_PRO_24_POE,
   TPLINK_T1600G_52PS,

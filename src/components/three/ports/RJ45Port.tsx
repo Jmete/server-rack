@@ -16,8 +16,7 @@ const PORT_HEIGHT = mmToScene(5);
 const PORT_DEPTH = mmToScene(3);
 
 export function RJ45Port({ port, position }: RJ45PortProps) {
-  const isWan = port.type === 'rj45-wan';
-  const baseColor = isWan ? PORT_TYPE_COLORS['rj45-wan'] : PORT_TYPE_COLORS['rj45-lan'];
+  const baseColor = PORT_TYPE_COLORS[port.type] ?? PORT_TYPE_COLORS['rj45-lan'];
 
   return (
     <Port
