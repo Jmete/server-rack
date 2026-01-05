@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, PatchPanel, RackUPS, UKPDU } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -33,6 +33,15 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
       if (equipment.id === 'usw-aggregation') {
         return (
           <USWAggregationSwitch
+            equipment={equipment}
+            onClick={onClick}
+            isSelected={isSelected}
+          />
+        );
+      }
+      if (equipment.id === 'usw-pro-aggregation') {
+        return (
+          <USWProAggregationSwitch
             equipment={equipment}
             onClick={onClick}
             isSelected={isSelected}
