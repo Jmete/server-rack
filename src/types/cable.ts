@@ -4,6 +4,7 @@ export type CableType =
   | 'ethernet-cat6a'
   | 'fiber-lc'
   | 'fiber-sc'
+  | 'phone-rj11'
   | 'power-iec'
   | 'power-uk';
 
@@ -42,6 +43,7 @@ export const CABLE_TYPE_LABELS: Record<CableType, string> = {
   'ethernet-cat6a': 'Cat6a Ethernet',
   'fiber-lc': 'Fiber LC',
   'fiber-sc': 'Fiber SC',
+  'phone-rj11': 'RJ11 Phone',
   'power-iec': 'IEC Power',
   'power-uk': 'UK Power',
 };
@@ -53,6 +55,7 @@ export const CABLE_PORT_COMPATIBILITY: Record<CableType, string[]> = {
   'ethernet-cat6a': ['rj45-lan', 'rj45-wan'],
   'fiber-lc': ['sfp-plus'],
   'fiber-sc': ['sfp-plus'],
+  'phone-rj11': ['fxo', 'fxs'],
   'power-iec': ['power-iec-c13', 'power-iec-c14'],
   'power-uk': ['uk-outlet-bs1363'],
 };
@@ -63,6 +66,12 @@ export function canConnect(
   targetPortType: string,
   cableType: CableType
 ): boolean {
+  if (cableType === 'phone-rj11') {
+    return (
+      (sourcePortType === 'fxo' && targetPortType === 'fxs') ||
+      (sourcePortType === 'fxs' && targetPortType === 'fxo')
+    );
+  }
   const compatiblePorts = CABLE_PORT_COMPATIBILITY[cableType];
   return (
     compatiblePorts.includes(sourcePortType) &&

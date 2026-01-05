@@ -68,6 +68,8 @@ export function Port({
         setCableType('fiber-lc');
       } else if (port.type === 'rj45-lan' || port.type === 'rj45-wan') {
         setCableType('ethernet-cat6');
+      } else if (port.type === 'fxo' || port.type === 'fxs') {
+        setCableType('phone-rj11');
       } else if (port.type === 'uk-outlet-bs1363') {
         setCableType('power-uk');
       } else if (port.type === 'power-iec-c13' || port.type === 'power-iec-c14') {
