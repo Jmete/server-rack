@@ -59,22 +59,15 @@ export function Cable({
     let remainingSegments = segments;
 
     const points: THREE.Vector3[] = [];
+    const flatThreshold = mmToScene(2);
+    const zThreshold = mmToScene(4);
+
     routePoints.slice(1).forEach((endPoint, index) => {
       const startPoint = routePoints[index];
       const segLength = segmentLengths[index];
       const segShare = Math.max(2, Math.round((segLength / totalPath) * segments));
       const segCount = index === routePoints.length - 2 ? remainingSegments : segShare;
       remainingSegments = Math.max(0, remainingSegments - segCount);
-
-      const sagPoints = createCatenaryPoints(
-        [startPoint.x, startPoint.y, startPoint.z],
-        [endPoint.x, endPoint.y, endPoint.z],
-        {
-          segments: segCount,
-          tension: effectiveTension,
-          frontOffset: 0,
-        }
-      );
 
       const straightPoints = Array.from({ length: segCount + 1 }, (_, i) => {
         const t = i / segCount;
@@ -84,6 +77,37 @@ export function Cable({
           THREE.MathUtils.lerp(startPoint.z, endPoint.z, t)
         );
       });
+
+      const isFlat = Math.abs(endPoint.y - startPoint.y) <= flatThreshold;
+      const bothBack = startPoint.z < -zThreshold && endPoint.z < -zThreshold;
+      const bothFront = startPoint.z > zThreshold && endPoint.z > zThreshold;
+      const sagDirection = isFlat
+        ? bothBack
+          ? new THREE.Vector3(0, 0, -1)
+          : bothFront
+          ? new THREE.Vector3(0, 0, 1)
+          : null
+        : null;
+
+      const noSag = isFlat && !sagDirection;
+      const sagPoints = noSag
+        ? straightPoints
+        : sagDirection
+        ? straightPoints.map((point, idx) => {
+            const t = idx / segCount;
+            const sagAmplitude = Math.min(segLength * 0.12, mmToScene(20));
+            const offset = Math.sin(Math.PI * t) * sagAmplitude;
+            return point.clone().addScaledVector(sagDirection, offset);
+          })
+        : createCatenaryPoints(
+            [startPoint.x, startPoint.y, startPoint.z],
+            [endPoint.x, endPoint.y, endPoint.z],
+            {
+              segments: segCount,
+              tension: effectiveTension,
+              frontOffset: 0,
+            }
+          );
 
       const blended = straightPoints.map((point, idx) =>
         point.clone().lerp(sagPoints[idx] ?? point, sagWeight)

@@ -69,7 +69,9 @@ export function canConnect(
   if (cableType === 'phone-rj11') {
     return (
       (sourcePortType === 'fxo' && targetPortType === 'fxs') ||
-      (sourcePortType === 'fxs' && targetPortType === 'fxo')
+      (sourcePortType === 'fxs' && targetPortType === 'fxo') ||
+      (sourcePortType === 'fxo' && targetPortType === 'fxo') ||
+      (sourcePortType === 'fxs' && targetPortType === 'fxs')
     );
   }
   const compatiblePorts = CABLE_PORT_COMPATIBILITY[cableType];
