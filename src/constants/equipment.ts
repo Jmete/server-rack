@@ -143,6 +143,46 @@ export const USW_PRO_48_POE: EquipmentDefinition = {
   ],
 };
 
+// USW Pro 24 PoE Switch (400W)
+export const USW_PRO_24_POE: EquipmentDefinition = {
+  id: 'usw-pro-24-poe',
+  type: 'switch',
+  name: 'USW Pro 24 PoE',
+  model: 'USW-Pro-24-POE',
+  manufacturer: 'Ubiquiti',
+  heightU: 1,
+  width: 442.4,
+  depth: 399.6,
+  color: EQUIPMENT_COLORS.UBIQUITI_SILVER,
+  ports: [
+    // 24 RJ45 ports in 2 rows of 12
+    ...generateSwitchPorts(24, 110, 7.5, 2),
+    // 2 SFP+ Ports (stacked vertically)
+    {
+      id: 'sfp-25',
+      type: 'sfp-plus',
+      label: 'SFP+ 1',
+      position: { x: 408, y: 28, z: 0 },
+      speed: '10G',
+    },
+    {
+      id: 'sfp-26',
+      type: 'sfp-plus',
+      label: 'SFP+ 2',
+      position: { x: 408, y: 16, z: 0 },
+      speed: '10G',
+    },
+  ],
+  features: [
+    {
+      type: 'display',
+      position: { x: 25, y: 22, z: 0 },
+      size: { width: 33, height: 33 },
+      label: 'LCD',
+    },
+  ],
+};
+
 // 24-Port Patch Panel
 export const PATCH_PANEL_24: EquipmentDefinition = {
   id: 'patch-panel-24',
@@ -249,6 +289,7 @@ export const UK_PDU: EquipmentDefinition = {
 export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
   USW_PRO_48_POE,
+  USW_PRO_24_POE,
   PATCH_PANEL_24,
   RACK_UPS,
   UK_PDU,

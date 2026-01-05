@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, PatchPanel, RackUPS, UKPDU } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, PatchPanel, RackUPS, UKPDU } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -21,6 +21,15 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
         />
       );
     case 'switch':
+      if (equipment.id === 'usw-pro-24-poe') {
+        return (
+          <USWPro24Switch
+            equipment={equipment}
+            onClick={onClick}
+            isSelected={isSelected}
+          />
+        );
+      }
       return (
         <USWProSwitch
           equipment={equipment}
