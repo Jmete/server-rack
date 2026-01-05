@@ -183,6 +183,41 @@ export const USW_PRO_24_POE: EquipmentDefinition = {
   ],
 };
 
+// USW Aggregation Switch (8x 10G SFP+)
+export const USW_AGGREGATION: EquipmentDefinition = {
+  id: 'usw-aggregation',
+  type: 'switch',
+  name: 'USW Aggregation',
+  model: 'USW-Aggregation',
+  manufacturer: 'Ubiquiti',
+  heightU: 1,
+  width: 442.4,
+  depth: 399.6,
+  color: EQUIPMENT_COLORS.UBIQUITI_SILVER,
+  ports: [
+    // 8 SFP+ Ports in 2 rows of 4
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: `sfp-${i + 1}`,
+      type: 'sfp-plus' as const,
+      label: `${i + 1}`,
+      position: {
+        x: 320 + Math.floor(i / 2) * 18,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: '10G' as const,
+    })),
+  ],
+  features: [
+    {
+      type: 'display',
+      position: { x: 25, y: 22, z: 0 },
+      size: { width: 33, height: 33 },
+      label: 'LCD',
+    },
+  ],
+};
+
 // 24-Port Patch Panel
 export const PATCH_PANEL_24: EquipmentDefinition = {
   id: 'patch-panel-24',
@@ -290,6 +325,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
   USW_PRO_48_POE,
   USW_PRO_24_POE,
+  USW_AGGREGATION,
   PATCH_PANEL_24,
   RACK_UPS,
   UK_PDU,
