@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208 } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -74,6 +74,14 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
     case 'pdu':
       return (
         <UKPDU
+          equipment={equipment}
+          onClick={onClick}
+          isSelected={isSelected}
+        />
+      );
+    case 'pbx':
+      return (
+        <UCM6208
           equipment={equipment}
           onClick={onClick}
           isSelected={isSelected}

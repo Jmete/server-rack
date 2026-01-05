@@ -5,7 +5,9 @@ export type PortType =
   | 'usb'
   | 'power-iec-c13'
   | 'power-iec-c14'
-  | 'uk-outlet-bs1363';
+  | 'uk-outlet-bs1363'
+  | 'fxo'
+  | 'fxs';
 
 export type PortSpeed =
   | '100M'
@@ -69,6 +71,8 @@ export const PORT_TYPE_LABELS: Record<PortType, string> = {
   'power-iec-c13': 'IEC C13',
   'power-iec-c14': 'IEC C14',
   'uk-outlet-bs1363': 'UK BS1363',
+  'fxo': 'FXO',
+  'fxs': 'FXS',
 };
 
 // Port type colors for visualization
@@ -80,4 +84,6 @@ export const PORT_TYPE_COLORS: Record<PortType, string> = {
   'power-iec-c13': '#ef4444', // red
   'power-iec-c14': '#ef4444', // red
   'uk-outlet-bs1363': '#ef4444', // red
+  'fxo': '#8b5cf6', // purple - for phone lines
+  'fxs': '#ec4899', // pink - for analog phones
 };

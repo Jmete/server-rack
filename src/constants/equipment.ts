@@ -367,6 +367,75 @@ export const UK_PDU: EquipmentDefinition = {
   ],
 };
 
+// Grandstream UCM6208 PBX
+export const UCM6208: EquipmentDefinition = {
+  id: 'ucm6208',
+  type: 'pbx',
+  name: 'UCM6208',
+  model: 'UCM6208',
+  manufacturer: 'Grandstream',
+  heightU: 1,
+  width: 440,
+  depth: 292,
+  color: EQUIPMENT_COLORS.BLACK,
+  ports: [
+    // === FRONT PORTS ===
+    // USB Port (front left)
+    {
+      id: 'usb-1',
+      type: 'usb',
+      label: 'USB',
+      position: { x: 25, y: 22, z: 0 },
+      speed: 'n/a',
+    },
+    // 2x FXS Ports (for analog phones)
+    ...Array.from({ length: 2 }, (_, i) => ({
+      id: `fxs-${i + 1}`,
+      type: 'fxs' as const,
+      label: `${i + 1}`,
+      position: { x: 95 + i * 18, y: 22, z: 0 },
+      speed: 'n/a' as const,
+    })),
+    // 8x FXO Ports (2 rows of 4, for phone lines)
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: `fxo-${i + 1}`,
+      type: 'fxo' as const,
+      label: `${i + 1}`,
+      position: {
+        x: 160 + Math.floor(i / 2) * 18,
+        y: i % 2 === 0 ? 28 : 16,
+        z: 0,
+      },
+      speed: 'n/a' as const,
+    })),
+    // === BACK PORTS ===
+    // LAN Port (RJ45) - for network connection
+    {
+      id: 'lan-1',
+      type: 'rj45-lan',
+      label: 'LAN',
+      position: { x: 200, y: 22, z: 292 },
+      speed: '1G',
+    },
+    // WAN Port (RJ45) - for external network/internet
+    {
+      id: 'wan-1',
+      type: 'rj45-wan',
+      label: 'WAN',
+      position: { x: 230, y: 22, z: 292 },
+      speed: '1G',
+    },
+  ],
+  features: [
+    {
+      type: 'display',
+      position: { x: 370, y: 22, z: 0 },
+      size: { width: 55, height: 22 },
+      label: 'LCD',
+    },
+  ],
+};
+
 // Export all equipment as catalog
 export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
@@ -377,6 +446,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   PATCH_PANEL_24,
   RACK_UPS,
   UK_PDU,
+  UCM6208,
 ];
 
 // Get equipment by ID

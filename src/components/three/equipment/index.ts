@@ -6,3 +6,4 @@ export { USWProAggregationSwitch } from './USWProAggregationSwitch';
 export { PatchPanel } from './PatchPanel';
 export { RackUPS } from './RackUPS';
 export { UKPDU } from './UKPDU';
+export { UCM6208 } from './UCM6208';
