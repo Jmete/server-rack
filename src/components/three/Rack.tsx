@@ -16,9 +16,10 @@ export const SLOT_START_OFFSET = FRAME_THICKNESS;
 
 interface RackProps {
   showSlotNumbers?: boolean;
+  onClick?: () => void;
 }
 
-export function Rack({ showSlotNumbers = true }: RackProps) {
+export function Rack({ showSlotNumbers = true, onClick }: RackProps) {
   const rackSize = useRackStore((state) => state.rack.config.size);
   const rackDepthMm = useRackStore((state) => state.rack.config.depth);
 
@@ -86,7 +87,7 @@ export function Rack({ showSlotNumbers = true }: RackProps) {
   }, [rackSize, showSlotNumbers, RACK_DEPTH]);
 
   return (
-    <group position={[0, 0, 0]}>
+    <group position={[0, 0, 0]} onClick={onClick}>
       {/* Rack Frame - 4 vertical posts */}
       {/* Front Left Post */}
       <mesh

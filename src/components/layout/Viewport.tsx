@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Scene } from '@/components/three/Scene';
+import { useUIStore } from '@/stores';
 import { RackDropZones } from '@/components/dnd/RackDropZones';
 import { RackEquipmentOverlay } from '@/components/dnd/RackEquipmentOverlay';
 import { ConnectionModeFAB } from '@/components/viewport/ConnectionModeFAB';
@@ -13,6 +14,7 @@ const VIEWPORT_BG_KEY = 'server-rack-viewport-bg';
 
 export function Viewport() {
   const { resolvedTheme, mounted } = useTheme();
+  const clearSelection = useUIStore((state) => state.clearSelection);
   const [isDarkBackground, setIsDarkBackground] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
@@ -47,6 +49,7 @@ export function Viewport() {
         camera={{ position: [5, 5, 5], fov: 50 }}
         dpr={[1, 2]}
         gl={{ antialias: true, preserveDrawingBuffer: true, alpha: true }}
+        onPointerMissed={clearSelection}
       >
         <Scene isDarkBackground={isDarkBackground} />
       </Canvas>

@@ -131,7 +131,7 @@ export function Scene({ isDarkBackground = true }: SceneProps) {
       )}
 
       {/* Server Rack */}
-      <Rack />
+      <Rack onClick={handleBackgroundClick} />
       <RackDropBounds />
       <RackHoverHighlight />
       <PortLabelProjector />
