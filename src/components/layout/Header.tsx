@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { Download, Settings2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme';
-import { useRackStore, useUIStore } from '@/stores';
+import { Download } from "lucide-react";
+import { Logo } from "./Logo";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme";
+import { useRackStore, useUIStore } from "@/stores";
 
 export function Header() {
   const rackName = useRackStore((state) => state.rack.config.name);
@@ -14,7 +15,7 @@ export function Header() {
       {/* Left: App title */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5 text-primary" />
+          <Logo className="h-14 w-14 text-primary" />
           <span className="font-bold text-sm tracking-wide crt-glow">
             RACK CONFIG
           </span>
