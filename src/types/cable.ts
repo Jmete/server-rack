@@ -45,7 +45,7 @@ export const CABLE_TYPE_LABELS: Record<CableType, string> = {
   'fiber-sc': 'Fiber SC',
   'phone-rj11': 'RJ11 Phone',
   'power-iec': 'IEC Power',
-  'power-uk': 'UK Power',
+  'power-uk': 'UK to IEC',
 };
 
 // Cable type to compatible port types mapping
@@ -57,7 +57,7 @@ export const CABLE_PORT_COMPATIBILITY: Record<CableType, string[]> = {
   'fiber-sc': ['sfp-plus'],
   'phone-rj11': ['fxo', 'fxs'],
   'power-iec': ['power-iec-c13', 'power-iec-c14'],
-  'power-uk': ['uk-outlet-bs1363'],
+  'power-uk': ['uk-outlet-bs1363', 'power-iec-c14'],
 };
 
 // Helper to check if two ports can be connected with a given cable type
@@ -72,6 +72,18 @@ export function canConnect(
       (sourcePortType === 'fxs' && targetPortType === 'fxo') ||
       (sourcePortType === 'fxo' && targetPortType === 'fxo') ||
       (sourcePortType === 'fxs' && targetPortType === 'fxs')
+    );
+  }
+  if (cableType === 'power-iec') {
+    return (
+      (sourcePortType === 'power-iec-c13' && targetPortType === 'power-iec-c14') ||
+      (sourcePortType === 'power-iec-c14' && targetPortType === 'power-iec-c13')
+    );
+  }
+  if (cableType === 'power-uk') {
+    return (
+      (sourcePortType === 'uk-outlet-bs1363' && targetPortType === 'power-iec-c14') ||
+      (sourcePortType === 'power-iec-c14' && targetPortType === 'uk-outlet-bs1363')
     );
   }
   const compatiblePorts = CABLE_PORT_COMPATIBILITY[cableType];
