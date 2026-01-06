@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F, T1600G28PS } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -33,6 +33,15 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
       if (equipment.id === 'usw-pro-24-poe') {
         return (
           <USWPro24Switch
+            equipment={equipment}
+            onClick={onClick}
+            isSelected={isSelected}
+          />
+        );
+      }
+      if (equipment.id === 'tplink-t1600g-28ps') {
+        return (
+          <T1600G28PS
             equipment={equipment}
             onClick={onClick}
             isSelected={isSelected}

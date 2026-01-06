@@ -409,6 +409,40 @@ export const TPLINK_T1600G_52PS: EquipmentDefinition = {
   features: [],
 };
 
+// TP-Link T1600G-28PS Switch
+export const TPLINK_T1600G_28PS: EquipmentDefinition = {
+  id: 'tplink-t1600g-28ps',
+  type: 'switch',
+  name: 'TP-Link T1600G-28PS',
+  model: 'T1600G-28PS',
+  manufacturer: 'TP-Link',
+  heightU: 1,
+  width: 442.4,
+  depth: 294,
+  color: EQUIPMENT_COLORS.BLACK,
+  ports: [
+    // 24 RJ45 PoE+ ports in 2 rows
+    ...generateSwitchPorts(24, 150, 7.5, 2),
+    // 4 SFP ports
+    ...Array.from({ length: 4 }, (_, i) => ({
+      id: `sfp-${i + 25}`,
+      type: 'sfp-plus' as const,
+      label: `SFP ${i + 25}`,
+      position: { x: 380 + i * 12, y: 22, z: 0 },
+      speed: '1G' as const,
+    })),
+    // Back power inlet
+    {
+      id: 'power-1',
+      type: 'power-iec-c14',
+      label: 'Power',
+      position: { x: 420, y: 22, z: 294 },
+      speed: 'power',
+    },
+  ],
+  features: [],
+};
+
 // USW Aggregation Switch (8x 10G SFP+)
 export const USW_AGGREGATION: EquipmentDefinition = {
   id: 'usw-aggregation',
@@ -669,6 +703,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   USW_PRO_48_POE,
   USW_PRO_24_POE,
   TPLINK_T1600G_52PS,
+  TPLINK_T1600G_28PS,
   USW_AGGREGATION,
   USW_PRO_AGGREGATION,
   PATCH_PANEL_24,

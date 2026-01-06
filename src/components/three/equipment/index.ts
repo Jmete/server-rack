@@ -9,3 +9,4 @@ export { UKPDU } from './UKPDU';
 export { UCM6208 } from './UCM6208';
 export { T1600G52PS } from './T1600G52PS';
 export { FortiGate100F } from './FortiGate100F';
+export { T1600G28PS } from './T1600G28PS';
