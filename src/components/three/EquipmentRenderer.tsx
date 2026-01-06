@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F, T1600G28PS } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F, T1600G28PS, MA5822S16POTS } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -51,6 +51,15 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
       if (equipment.id === 'tplink-t1600g-52ps') {
         return (
           <T1600G52PS
+            equipment={equipment}
+            onClick={onClick}
+            isSelected={isSelected}
+          />
+        );
+      }
+      if (equipment.id === 'huawei-ma5822s-16ge-16pots') {
+        return (
+          <MA5822S16POTS
             equipment={equipment}
             onClick={onClick}
             isSelected={isSelected}

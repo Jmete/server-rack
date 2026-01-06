@@ -443,6 +443,63 @@ export const TPLINK_T1600G_28PS: EquipmentDefinition = {
   features: [],
 };
 
+// Huawei SmartAX MA5822S (16 GE + 16 POTS)
+export const HUAWEI_MA5822S_16GE_16POTS: EquipmentDefinition = {
+  id: 'huawei-ma5822s-16ge-16pots',
+  type: 'switch',
+  name: 'Huawei SmartAX MA5822S',
+  model: 'MA5822S (16GE + 16POTS)',
+  manufacturer: 'Huawei',
+  heightU: 1,
+  width: 442.4,
+  depth: 220,
+  color: EQUIPMENT_COLORS.STEEL,
+  ports: [
+    // AC power port (front left)
+    {
+      id: 'power-1',
+      type: 'power-iec-c14',
+      label: 'AC',
+      position: { x: 30, y: 22, z: 0 },
+      speed: 'power',
+    },
+    // Uplink optical port (SFP)
+    {
+      id: 'sfp-1',
+      type: 'sfp-plus',
+      label: 'Uplink',
+      position: { x: 100, y: 22, z: 0 },
+      speed: '10G',
+    },
+    // Serial console port
+    {
+      id: 'console-1',
+      type: 'rj45-console',
+      label: 'Console',
+      position: { x: 124, y: 22, z: 0 },
+      speed: 'n/a',
+    },
+    // 16 GE electrical ports
+    ...Array.from({ length: 16 }, (_, i) => ({
+      id: `ge-${i + 1}`,
+      type: 'rj45-lan' as const,
+      label: `${i + 1}`,
+      position: { x: 150 + i * 13, y: 22, z: 0 },
+      speed: '1G' as const,
+      column: i,
+    })),
+    // POTS port block (16 lines)
+    {
+      id: 'pots-1',
+      type: 'fxs',
+      label: 'POTS 1-16',
+      position: { x: 410, y: 22, z: 0 },
+      speed: 'n/a',
+    },
+  ],
+  features: [],
+};
+
 // USW Aggregation Switch (8x 10G SFP+)
 export const USW_AGGREGATION: EquipmentDefinition = {
   id: 'usw-aggregation',
@@ -704,6 +761,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   USW_PRO_24_POE,
   TPLINK_T1600G_52PS,
   TPLINK_T1600G_28PS,
+  HUAWEI_MA5822S_16GE_16POTS,
   USW_AGGREGATION,
   USW_PRO_AGGREGATION,
   PATCH_PANEL_24,
