@@ -859,6 +859,21 @@ export const HIKVISION_IDS_7208HQHI_M1S: EquipmentDefinition = {
   features: [],
 };
 
+// 1U Rack Shelf (for mounting non-rackmount equipment)
+export const RACK_SHELF_1U: EquipmentDefinition = {
+  id: 'rack-shelf-1u',
+  type: 'shelf',
+  name: '1U Rack Shelf',
+  model: 'Cantilever Shelf 1U',
+  manufacturer: 'Generic',
+  heightU: 1,
+  width: 482.6, // Full 19" rack width
+  depth: 350, // Default depth, adjusts visually to rack
+  color: EQUIPMENT_COLORS.BLACK,
+  ports: [],
+  features: [],
+};
+
 // Export all equipment as catalog
 export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
@@ -875,6 +890,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UK_PDU,
   UCM6208,
   HIKVISION_IDS_7208HQHI_M1S,
+  RACK_SHELF_1U,
 ];
 
 // Get equipment by ID

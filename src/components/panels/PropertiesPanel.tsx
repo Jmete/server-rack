@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useConnectionStore, usePortStore, useRackStore, useUIStore } from '@/stores';
 import { PORT_TYPE_LABELS } from '@/types/port';
+import { ShelfItemsPanel } from './ShelfItemsPanel';
 
 export function PropertiesPanel() {
   const equipment = useRackStore((state) => state.equipment);
@@ -266,6 +267,11 @@ export function PropertiesPanel() {
             </div>
           )}
         </div>
+
+        {/* Shelf Items Section - only shown for shelf equipment */}
+        {selected.type === 'shelf' && (
+          <ShelfItemsPanel shelf={selected} />
+        )}
       </div>
     </div>
   );

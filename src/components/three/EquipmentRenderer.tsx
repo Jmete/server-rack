@@ -1,7 +1,7 @@
 'use client';
 
 import { Equipment as EquipmentType } from '@/types';
-import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F, T1600G28PS, MA5822S16POTS, HikvisionIDS7208HQHIM1S } from './equipment';
+import { UDMProRouter, USWProSwitch, USWPro24Switch, USWAggregationSwitch, USWProAggregationSwitch, PatchPanel, RackUPS, UKPDU, UCM6208, T1600G52PS, FortiGate100F, T1600G28PS, MA5822S16POTS, HikvisionIDS7208HQHIM1S, RackShelf } from './equipment';
 
 interface EquipmentRendererProps {
   equipment: EquipmentType;
@@ -126,6 +126,14 @@ export function EquipmentRenderer({ equipment, onClick, isSelected }: EquipmentR
     case 'dvr':
       return (
         <HikvisionIDS7208HQHIM1S
+          equipment={equipment}
+          onClick={onClick}
+          isSelected={isSelected}
+        />
+      );
+    case 'shelf':
+      return (
+        <RackShelf
           equipment={equipment}
           onClick={onClick}
           isSelected={isSelected}

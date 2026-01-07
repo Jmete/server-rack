@@ -9,7 +9,8 @@ import {
   createEquipmentInstance,
 } from '@/types';
 import { useConnectionStore } from './useConnectionStore';
-import { MIN_RACK_SIZE, MAX_RACK_SIZE, MIN_DEPTH_INCHES, MAX_DEPTH_INCHES, INCH_TO_MM } from '@/constants';
+import { useShelfStore } from './useShelfStore';
+import { MIN_RACK_SIZE, MAX_RACK_SIZE, MIN_DEPTH_INCHES, MAX_DEPTH_INCHES, INCH_TO_MM, RACK_CONSTANTS } from '@/constants';
 
 interface RackState {
   rack: Rack;
@@ -33,9 +34,11 @@ interface RackState {
   canPlaceEquipment: (
     heightU: number,
     slotPosition: number,
-    excludeInstanceIds?: string | string[]
+    excludeInstanceIds?: string | string[],
+    checkShelfClearance?: boolean
   ) => boolean;
   getEquipmentAtSlot: (slotPosition: number) => Equipment | undefined;
+  getShelfClearanceAtSlot: (slotPosition: number) => number; // Returns mm of clearance blocked by shelf items below
 
   // Import/Export
   importConfig: (rack: Rack, equipment: Equipment[]) => void;
@@ -127,6 +130,14 @@ export const useRackStore = create<RackState>((set, get) => ({
 
   removeEquipment: (instanceId: string) => {
     useConnectionStore.getState().removeCablesForEquipment(instanceId);
+
+    // If this is a shelf, also remove all items on it
+    const state = get();
+    const equipment = state.equipment.find((e) => e.instanceId === instanceId);
+    if (equipment?.type === 'shelf') {
+      useShelfStore.getState().removeAllItemsFromShelf(instanceId);
+    }
+
     set((state) => {
       const equipment = state.equipment.find((e) => e.instanceId === instanceId);
       if (!equipment) return state;
@@ -291,9 +302,9 @@ export const useRackStore = create<RackState>((set, get) => ({
     }));
   },
 
-  canPlaceEquipment: (heightU: number, slotPosition: number, excludeInstanceIds?: string | string[]) => {
+  canPlaceEquipment: (heightU: number, slotPosition: number, excludeInstanceIds?: string | string[], checkShelfClearance: boolean = true) => {
     const state = get();
-    const { rack } = state;
+    const { rack, equipment } = state;
     const excludeList = Array.isArray(excludeInstanceIds)
       ? excludeInstanceIds
       : excludeInstanceIds
@@ -313,6 +324,35 @@ export const useRackStore = create<RackState>((set, get) => ({
       }
     }
 
+    // Check shelf item clearance - equipment can't be placed if blocked by tall items on shelves below
+    if (checkShelfClearance) {
+      const shelfStore = useShelfStore.getState();
+
+      // Find all shelves below this position
+      for (const eq of equipment) {
+        if (eq.type !== 'shelf') continue;
+        if (excludeList.includes(eq.instanceId)) continue;
+
+        const shelfTopU = eq.slotPosition + eq.heightU;
+
+        // Only check shelves that are below the target position
+        if (shelfTopU > slotPosition) continue;
+
+        // Get max height of items on this shelf
+        const maxHeightMm = shelfStore.getMaxHeightOnShelf(eq.instanceId);
+        if (maxHeightMm === 0) continue;
+
+        // Calculate how many U slots the items block
+        const clearanceU = Math.ceil(maxHeightMm / RACK_CONSTANTS.U_HEIGHT_MM);
+        const blockedUpToU = shelfTopU + clearanceU - 1;
+
+        // Check if target position is within blocked range
+        if (slotPosition <= blockedUpToU) {
+          return false;
+        }
+      }
+    }
+
     return true;
   },
 
@@ -321,6 +361,38 @@ export const useRackStore = create<RackState>((set, get) => ({
     const slot = state.rack.slots[slotPosition - 1];
     if (!slot || !slot.equipmentId) return undefined;
     return state.equipment.find((e) => e.instanceId === slot.equipmentId);
+  },
+
+  getShelfClearanceAtSlot: (slotPosition: number) => {
+    const state = get();
+    const { equipment } = state;
+    const shelfStore = useShelfStore.getState();
+
+    let maxClearance = 0;
+
+    // Find all shelves below this slot and calculate the clearance they need
+    for (const eq of equipment) {
+      if (eq.type !== 'shelf') continue;
+
+      const shelfTopU = eq.slotPosition + eq.heightU;
+
+      // Only check shelves that affect this slot position
+      if (shelfTopU > slotPosition) continue;
+
+      const maxHeightMm = shelfStore.getMaxHeightOnShelf(eq.instanceId);
+      if (maxHeightMm === 0) continue;
+
+      const clearanceU = Math.ceil(maxHeightMm / RACK_CONSTANTS.U_HEIGHT_MM);
+      const blockedUpToU = shelfTopU + clearanceU - 1;
+
+      // If this slot is in the blocked range, return the remaining clearance
+      if (slotPosition <= blockedUpToU) {
+        const remainingClearance = maxHeightMm - (slotPosition - shelfTopU) * RACK_CONSTANTS.U_HEIGHT_MM;
+        maxClearance = Math.max(maxClearance, remainingClearance);
+      }
+    }
+
+    return maxClearance;
   },
 
   importConfig: (rack: Rack, equipment: Equipment[]) => {

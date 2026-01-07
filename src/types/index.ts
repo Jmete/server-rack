@@ -3,6 +3,7 @@ export * from './rack';
 export * from './equipment';
 export * from './port';
 export * from './cable';
+export * from './shelf';
 
 // Application state types
 export interface ConnectionMode {

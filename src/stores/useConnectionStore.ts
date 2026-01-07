@@ -108,9 +108,11 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       rackState.equipment,
       rackState.rack.config.depth
     );
-    const startBounds = equipmentBounds.find((box) =>
-      connectionMode.sourcePortId.startsWith(`${box.id}-`)
-    );
+    const startBounds = connectionMode.sourcePortId
+      ? equipmentBounds.find((box) =>
+          connectionMode.sourcePortId!.startsWith(`${box.id}-`)
+        )
+      : undefined;
     const endBounds = equipmentBounds.find((box) =>
       portId.startsWith(`${box.id}-`)
     );

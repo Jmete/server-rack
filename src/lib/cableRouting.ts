@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { FRAME_THICKNESS_MM, mmToScene, uToScene } from '@/constants';
 import type { Equipment, RackSlot } from '@/types';
+import type { ShelfItem } from '@/types/shelf';
+import { getRotatedDimensions } from '@/types/shelf';
 
 interface EquipmentBounds {
   id: string;
@@ -157,6 +159,71 @@ export function buildEquipmentBounds(
     );
     return { id: item.instanceId, min, max };
   });
+}
+
+// Build equipment bounds including shelf items for cable routing
+export function buildEquipmentBoundsWithShelfItems(
+  equipment: Equipment[],
+  shelfItemsMap: Record<string, ShelfItem[]>,
+  rackDepthMm: number,
+  padding = mmToScene(2)
+): EquipmentBounds[] {
+  // Start with standard equipment bounds
+  const bounds = buildEquipmentBounds(equipment, rackDepthMm, padding);
+
+  const frameThickness = mmToScene(FRAME_THICKNESS_MM);
+  const slotStart = frameThickness;
+  const railFrontZ = getRailFrontZ(rackDepthMm);
+
+  // Add bounds for each shelf item
+  for (const shelf of equipment) {
+    if (shelf.type !== 'shelf') continue;
+
+    const shelfItems = shelfItemsMap[shelf.instanceId] || [];
+    if (shelfItems.length === 0) continue;
+
+    // Calculate shelf position
+    const shelfDepthMm = Math.min(shelf.depth, rackDepthMm - 50);
+    const shelfWidth = mmToScene(shelf.width);
+    const shelfHeight = uToScene(shelf.heightU);
+    const shelfTopY = slotStart + uToScene(shelf.slotPosition - 1) + shelfHeight;
+    const shelfCenterZ = railFrontZ - mmToScene(shelfDepthMm) / 2;
+    const shelfFrontZ = shelfCenterZ + mmToScene(shelfDepthMm) / 2;
+
+    // Usable area offsets (matching RackShelf.tsx)
+    const railMargin = mmToScene(20); // SHELF_RAIL_MARGIN_MM
+    const frontMargin = mmToScene(10); // SHELF_FRONT_MARGIN_MM
+    const usableStartX = -shelfWidth / 2 + railMargin;
+    const usableStartZ = shelfFrontZ - frontMargin;
+
+    for (const item of shelfItems) {
+      // Get rotated dimensions
+      const rotated = getRotatedDimensions(item.width, item.depth, item.position.rotation);
+      const itemWidth = mmToScene(rotated.width);
+      const itemDepth = mmToScene(rotated.depth);
+      const itemHeight = mmToScene(item.heightMm);
+
+      // Calculate item world position
+      const itemX = usableStartX + mmToScene(item.position.x) + itemWidth / 2;
+      const itemY = shelfTopY + itemHeight / 2;
+      const itemZ = usableStartZ - mmToScene(item.position.z) - itemDepth / 2;
+
+      const min = new THREE.Vector3(
+        itemX - itemWidth / 2 - padding,
+        itemY - itemHeight / 2 - padding,
+        itemZ - itemDepth / 2 - padding
+      );
+      const max = new THREE.Vector3(
+        itemX + itemWidth / 2 + padding,
+        itemY + itemHeight / 2 + padding,
+        itemZ + itemDepth / 2 + padding
+      );
+
+      bounds.push({ id: item.instanceId, min, max });
+    }
+  }
+
+  return bounds;
 }
 
 function computeRouteLength(points: THREE.Vector3[]) {

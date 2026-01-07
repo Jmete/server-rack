@@ -7,7 +7,8 @@ export type EquipmentType =
   | 'ups'
   | 'pdu'
   | 'pbx'
-  | 'dvr';
+  | 'dvr'
+  | 'shelf';
 
 export interface EquipmentFeature {
   type: 'display' | 'led' | 'power-button';
