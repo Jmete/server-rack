@@ -5,7 +5,8 @@ import { useConnectionStore, usePortStore, useRackStore, useUIStore } from '@/st
 import { mmToScene } from '@/constants';
 import { Cable } from './Cable';
 import * as THREE from 'three';
-import { buildEquipmentBounds, computeCableRoute } from '@/lib/cableRouting';
+import { buildEquipmentBoundsWithShelfItems, computeCableRoute } from '@/lib/cableRouting';
+import { useShelfStore } from '@/stores/useShelfStore';
 
 export function CableManager() {
   const cables = useConnectionStore((state) => state.cables);
@@ -14,10 +15,11 @@ export function CableManager() {
   const equipment = useRackStore((state) => state.equipment);
   const selectedCableId = useUIStore((state) => state.selectedCableId);
   const selectCable = useUIStore((state) => state.selectCable);
+  const shelfItems = useShelfStore((state) => state.shelfItems);
 
   const equipmentBounds = useMemo(() => {
-    return buildEquipmentBounds(equipment, rack.config.depth);
-  }, [equipment, rack.config.depth]);
+    return buildEquipmentBoundsWithShelfItems(equipment, shelfItems, rack.config.depth);
+  }, [equipment, shelfItems, rack.config.depth]);
 
   const resolved = useMemo(() => {
     return cables

@@ -10,7 +10,8 @@ import {
 } from '@/types';
 import { usePortStore } from './usePortStore';
 import { useRackStore } from './useRackStore';
-import { buildEquipmentBounds, computeCableRoute } from '@/lib/cableRouting';
+import { buildEquipmentBoundsWithShelfItems, computeCableRoute } from '@/lib/cableRouting';
+import { useShelfStore } from './useShelfStore';
 import { mmToScene } from '@/constants';
 
 interface ConnectionState {
@@ -104,8 +105,10 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
         : null;
 
     const rackState = useRackStore.getState();
-    const equipmentBounds = buildEquipmentBounds(
+    const shelfItemsMap = useShelfStore.getState().shelfItems;
+    const equipmentBounds = buildEquipmentBoundsWithShelfItems(
       rackState.equipment,
+      shelfItemsMap,
       rackState.rack.config.depth
     );
     const startBounds = connectionMode.sourcePortId
