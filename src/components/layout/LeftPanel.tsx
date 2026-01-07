@@ -78,6 +78,7 @@ export function LeftPanel() {
           onChange={(event) => setSearchQuery(event.target.value)}
           placeholder="Search equipment"
           className="mt-2 h-8 text-xs"
+          suppressHydrationWarning
         />
       </div>
 

@@ -84,6 +84,7 @@ export function MobileCatalogSheet() {
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search equipment..."
             className="h-10 text-sm"
+            suppressHydrationWarning
           />
           <p className="text-xs text-muted-foreground mt-2">
             Tap to add equipment to rack

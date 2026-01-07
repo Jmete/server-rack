@@ -1,26 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useSyncExternalStore } from 'react';
 
 /**
- * SSR-safe media query hook
+ * SSR-safe media query hook using useSyncExternalStore
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
+  const subscribe = (callback: () => void) => {
     const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
+    mediaQuery.addEventListener('change', callback);
+    return () => mediaQuery.removeEventListener('change', callback);
+  };
 
-    const handler = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
+  const getSnapshot = () => {
+    return window.matchMedia(query).matches;
+  };
 
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [query]);
+  const getServerSnapshot = () => {
+    // Return false on server to match initial client render
+    return false;
+  };
 
-  return matches;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 /**
