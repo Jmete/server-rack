@@ -65,7 +65,7 @@ export function ConnectionModeFAB() {
   };
 
   return (
-    <div className="absolute bottom-4 right-4 z-20">
+    <div className="absolute bottom-4 right-4 z-20 hidden md:block">
       {/* Expanded Panel */}
       <div
         className={cn(

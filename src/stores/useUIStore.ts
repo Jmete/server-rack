@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+export type MobilePanel = 'none' | 'catalog' | 'properties' | 'connections' | 'more';
+
 interface UIState {
   // Selection state
   selectedEquipmentId: string | null;
@@ -11,6 +13,9 @@ interface UIState {
   // Modal state
   rackSettingsModalOpen: boolean;
   exportModalOpen: boolean;
+
+  // Mobile state
+  activePanel: MobilePanel;
 
   // Camera state
   cameraPosition: [number, number, number];
@@ -38,6 +43,9 @@ interface UIState {
   // Modal actions
   setRackSettingsModalOpen: (open: boolean) => void;
   setExportModalOpen: (open: boolean) => void;
+
+  // Mobile actions
+  setActivePanel: (panel: MobilePanel) => void;
 
   // Camera actions
   setCameraPosition: (position: [number, number, number]) => void;
@@ -76,6 +84,7 @@ export const useUIStore = create<UIState>((set) => ({
   hoveredEquipmentId: null,
   rackSettingsModalOpen: false,
   exportModalOpen: false,
+  activePanel: 'none',
   cameraPosition: defaultCameraPosition,
   cameraTarget: defaultCameraTarget,
   isDragging: false,
@@ -125,6 +134,11 @@ export const useUIStore = create<UIState>((set) => ({
 
   setExportModalOpen: (open: boolean) => {
     set({ exportModalOpen: open });
+  },
+
+  // Mobile actions
+  setActivePanel: (panel) => {
+    set({ activePanel: panel });
   },
 
   // Camera actions
