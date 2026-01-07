@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { useConnectionStore, usePortStore, useUIStore } from '@/stores';
 import { Port as PortType } from '@/types';
 import { UI_COLORS } from '@/constants';
-import { CableType, CABLE_PORT_COMPATIBILITY, CABLE_TYPE_LABELS, canConnect } from '@/types/cable';
+import { CABLE_PORT_COMPATIBILITY, resolveCableType } from '@/types/cable';
 
 interface PortProps {
   port: PortType;
@@ -56,15 +56,7 @@ export function Port({
     const sourceType = portTypes[connectionMode.sourcePortId];
     if (!sourceType) return null;
 
-    if (canConnect(sourceType, port.type, connectionMode.cableType)) {
-      return connectionMode.cableType;
-    }
-
-    const compatibleTypes = (Object.keys(CABLE_TYPE_LABELS) as CableType[]).filter((type) =>
-      canConnect(sourceType, port.type, type)
-    );
-
-    return compatibleTypes.length === 1 ? compatibleTypes[0] : null;
+    return resolveCableType(sourceType, port.type, connectionMode.cableType);
   }, [
     connectionMode.active,
     connectionMode.sourcePortId,

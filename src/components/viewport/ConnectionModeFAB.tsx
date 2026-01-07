@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Cable, X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useConnectionStore } from '@/stores';
-import { CABLE_COLORS, CABLE_TYPE_LABELS, CableType } from '@/types/cable';
+import { useConnectionStore, usePortStore, useUIStore } from '@/stores';
+import { CABLE_COLORS, CABLE_TYPE_LABELS, CableType, resolveCableType } from '@/types/cable';
 import { cn } from '@/lib/utils';
 
 export function ConnectionModeFAB() {
@@ -21,8 +21,30 @@ export function ConnectionModeFAB() {
   const cancelConnection = useConnectionStore((state) => state.cancelConnection);
   const setCableType = useConnectionStore((state) => state.setCableType);
   const setCableColor = useConnectionStore((state) => state.setCableColor);
+  const hoveredPortId = useUIStore((state) => state.hoveredPortId);
+  const portTypes = usePortStore((state) => state.types);
 
   const isActive = connectionMode.active;
+
+  const autoCableType = useMemo(() => {
+    if (!connectionMode.active || !connectionMode.sourcePortId || !hoveredPortId) return null;
+    if (connectionMode.sourcePortId === hoveredPortId) return null;
+
+    const sourceType = portTypes[connectionMode.sourcePortId];
+    const targetType = portTypes[hoveredPortId];
+    if (!sourceType || !targetType) return null;
+
+    const resolvedType = resolveCableType(sourceType, targetType, connectionMode.cableType);
+    if (!resolvedType || resolvedType === connectionMode.cableType) return null;
+
+    return resolvedType;
+  }, [
+    connectionMode.active,
+    connectionMode.sourcePortId,
+    connectionMode.cableType,
+    hoveredPortId,
+    portTypes,
+  ]);
 
   const handleToggle = () => {
     if (isActive) {
@@ -77,11 +99,18 @@ export function ConnectionModeFAB() {
               isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
             )}
           >
-            {isActive
-              ? connectionMode.sourcePortId
-                ? 'Click target port to connect'
-                : 'Click source port to start'
-              : 'Configure and click Connect'}
+            <div>
+              {isActive
+                ? connectionMode.sourcePortId
+                  ? 'Click target port to connect'
+                  : 'Click source port to start'
+                : 'Configure and click Connect'}
+            </div>
+            {autoCableType ? (
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                Auto-select: {CABLE_TYPE_LABELS[autoCableType]}
+              </div>
+            ) : null}
           </div>
 
           {/* Cable Type */}

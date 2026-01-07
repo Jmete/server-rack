@@ -93,6 +93,23 @@ export function canConnect(
   );
 }
 
+// Pick a cable type when there is a unique compatible option.
+export function resolveCableType(
+  sourcePortType: string,
+  targetPortType: string,
+  preferredType: CableType
+): CableType | null {
+  if (canConnect(sourcePortType, targetPortType, preferredType)) {
+    return preferredType;
+  }
+
+  const compatibleTypes = (Object.keys(CABLE_TYPE_LABELS) as CableType[]).filter((type) =>
+    canConnect(sourcePortType, targetPortType, type)
+  );
+
+  return compatibleTypes.length === 1 ? compatibleTypes[0] : null;
+}
+
 // Helper to create a cable
 export function createCable(
   sourcePortId: string,
