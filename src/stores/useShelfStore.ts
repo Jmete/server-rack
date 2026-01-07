@@ -57,6 +57,12 @@ interface ShelfState {
     excludeItemId?: string
   ) => boolean;
 
+  findAvailablePositionOnShelf: (
+    shelfInstanceId: string,
+    definition: ShelfItemDefinition,
+    shelfEquipment: Equipment
+  ) => ShelfItemPosition | null;
+
   getMaxHeightOnShelf: (shelfInstanceId: string) => number;
 
   getItemsOnShelf: (shelfInstanceId: string) => ShelfItem[];
@@ -269,6 +275,61 @@ export const useShelfStore = create<ShelfState>((set, get) => ({
     }
 
     return true;
+  },
+
+  findAvailablePositionOnShelf: (shelfInstanceId, definition, shelfEquipment) => {
+    const state = get();
+    const { width: usableWidth, depth: usableDepth } =
+      state.getUsableShelfArea(shelfEquipment);
+
+    if (usableWidth <= 0 || usableDepth <= 0) {
+      return null;
+    }
+
+    if (definition.minShelfDepth && shelfEquipment.depth < definition.minShelfDepth) {
+      return null;
+    }
+
+    const existingItems = state.shelfItems[shelfInstanceId] || [];
+    const xCandidates = new Set<number>([0]);
+    const zCandidates = new Set<number>([0]);
+
+    for (const item of existingItems) {
+      const bounds = getShelfItemBounds(item);
+      xCandidates.add(bounds.right);
+      zCandidates.add(bounds.back);
+    }
+
+    const sortedX = Array.from(xCandidates).sort((a, b) => a - b);
+    const sortedZ = Array.from(zCandidates).sort((a, b) => a - b);
+    const rotations: ShelfItemRotation[] = [0, 90, 180, 270];
+
+    for (const rotation of rotations) {
+      const rotated = getRotatedDimensions(definition.width, definition.depth, rotation);
+
+      for (const z of sortedZ) {
+        if (z + rotated.depth > usableDepth) continue;
+
+        for (const x of sortedX) {
+          if (x + rotated.width > usableWidth) continue;
+
+          const position: ShelfItemPosition = { x, z, rotation };
+          if (
+            state.canPlaceItemOnShelf(
+              shelfInstanceId,
+              definition.width,
+              definition.depth,
+              position,
+              shelfEquipment
+            )
+          ) {
+            return position;
+          }
+        }
+      }
+    }
+
+    return null;
   },
 
   getMaxHeightOnShelf: (shelfInstanceId) => {

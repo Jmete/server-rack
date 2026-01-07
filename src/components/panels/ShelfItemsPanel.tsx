@@ -1,18 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Package, Plus, RotateCw, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronDown, ChevronRight, Package, Plus, RotateCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Equipment } from '@/types';
 import { ShelfItem, ShelfItemDefinition, ShelfItemPosition } from '@/types/shelf';
 import { useShelfStore } from '@/stores/useShelfStore';
-import { useRackStore } from '@/stores';
 import { SHELF_ITEM_CATALOG } from '@/constants/shelfItems';
 
 interface ShelfItemsPanelProps {
   shelf: Equipment;
 }
+
+const MOVE_STEP_MM = 10;
 
 export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
   const [expanded, setExpanded] = useState(true);
@@ -24,16 +25,21 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
   const addItemToShelf = useShelfStore((state) => state.addItemToShelf);
   const removeItemFromShelf = useShelfStore((state) => state.removeItemFromShelf);
   const rotateItem = useShelfStore((state) => state.rotateItem);
+  const moveItemOnShelf = useShelfStore((state) => state.moveItemOnShelf);
   const getUsableShelfArea = useShelfStore((state) => state.getUsableShelfArea);
+  const findAvailablePositionOnShelf = useShelfStore((state) => state.findAvailablePositionOnShelf);
   const usableArea = getUsableShelfArea(shelf);
 
   const handleAddItem = (definition: ShelfItemDefinition) => {
-    // Find an available position on the shelf
-    const position: ShelfItemPosition = {
-      x: 10, // Start near left edge
-      z: 10, // Start near front
-      rotation: 0,
-    };
+    const position = findAvailablePositionOnShelf(
+      shelf.instanceId,
+      definition,
+      shelf
+    );
+
+    if (!position) {
+      return;
+    }
 
     // Try to add the item
     const result = addItemToShelf(shelf.instanceId, definition, position, shelf);
@@ -44,6 +50,16 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
 
   const handleRotateItem = (itemId: string) => {
     rotateItem(shelf.instanceId, itemId, shelf);
+  };
+
+  const handleMoveItem = (item: ShelfItem, deltaX: number, deltaZ: number) => {
+    const nextPosition: ShelfItemPosition = {
+      ...item.position,
+      x: item.position.x + deltaX,
+      z: item.position.z + deltaZ,
+    };
+
+    moveItemOnShelf(shelf.instanceId, item.instanceId, nextPosition, shelf);
   };
 
   const handleRemoveItem = (itemId: string) => {
@@ -83,14 +99,21 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
                 <DialogTitle>Add Item to Shelf</DialogTitle>
               </DialogHeader>
               <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {SHELF_ITEM_CATALOG.map((item) => (
-                  <ShelfItemCatalogCard
-                    key={item.id}
-                    item={item}
-                    usableArea={usableArea}
-                    onAdd={() => handleAddItem(item)}
-                  />
-                ))}
+                {SHELF_ITEM_CATALOG.map((item) => {
+                  const canPlace = Boolean(
+                    findAvailablePositionOnShelf(shelf.instanceId, item, shelf)
+                  );
+
+                  return (
+                    <ShelfItemCatalogCard
+                      key={item.id}
+                      item={item}
+                      usableArea={usableArea}
+                      canPlace={canPlace}
+                      onAdd={() => handleAddItem(item)}
+                    />
+                  );
+                })}
               </div>
             </DialogContent>
           </Dialog>
@@ -112,6 +135,7 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
                 item={item}
                 onRotate={() => handleRotateItem(item.instanceId)}
                 onRemove={() => handleRemoveItem(item.instanceId)}
+                onMove={(deltaX, deltaZ) => handleMoveItem(item, deltaX, deltaZ)}
               />
             ))
           )}
@@ -124,30 +148,32 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
 interface ShelfItemCatalogCardProps {
   item: ShelfItemDefinition;
   usableArea: { width: number; depth: number };
+  canPlace: boolean;
   onAdd: () => void;
 }
 
-function ShelfItemCatalogCard({ item, usableArea, onAdd }: ShelfItemCatalogCardProps) {
-  const fitsWidth = item.width <= usableArea.width;
-  const fitsDepth = item.depth <= usableArea.depth;
-  const fits = fitsWidth && fitsDepth;
+function ShelfItemCatalogCard({ item, usableArea, canPlace, onAdd }: ShelfItemCatalogCardProps) {
+  const fitsInArea =
+    (item.width <= usableArea.width && item.depth <= usableArea.depth) ||
+    (item.depth <= usableArea.width && item.width <= usableArea.depth);
+  const statusLabel = fitsInArea ? 'No space' : 'Too large';
 
   return (
     <div
-      className={`p-2 rounded-md border ${fits ? 'border-border hover:border-primary cursor-pointer' : 'border-border opacity-50'}`}
-      onClick={fits ? onAdd : undefined}
+      className={`p-2 rounded-md border ${canPlace ? 'border-border hover:border-primary cursor-pointer' : 'border-border opacity-50'}`}
+      onClick={canPlace ? onAdd : undefined}
     >
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-medium">{item.name}</div>
           <div className="text-xs text-muted-foreground">{item.manufacturer}</div>
         </div>
-        {fits ? (
+        {canPlace ? (
           <Button size="sm" variant="ghost" className="h-7">
             <Plus className="h-4 w-4" />
           </Button>
         ) : (
-          <span className="text-xs text-destructive">Too large</span>
+          <span className="text-xs text-destructive">{statusLabel}</span>
         )}
       </div>
       <div className="text-xs text-muted-foreground mt-1">
@@ -161,9 +187,10 @@ interface ShelfItemCardProps {
   item: ShelfItem;
   onRotate: () => void;
   onRemove: () => void;
+  onMove: (deltaX: number, deltaZ: number) => void;
 }
 
-function ShelfItemCard({ item, onRotate, onRemove }: ShelfItemCardProps) {
+function ShelfItemCard({ item, onRotate, onRemove, onMove }: ShelfItemCardProps) {
   return (
     <div className="p-2 rounded-md bg-muted/50 text-xs">
       <div className="flex items-center justify-between mb-1">
@@ -186,6 +213,47 @@ function ShelfItemCard({ item, onRotate, onRemove }: ShelfItemCardProps) {
             onClick={onRemove}
           >
             <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-muted-foreground mb-1.5">
+        <span>Nudge</span>
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            title="Move left"
+            onClick={() => onMove(-MOVE_STEP_MM, 0)}
+          >
+            <ArrowLeft className="h-3 w-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            title="Move right"
+            onClick={() => onMove(MOVE_STEP_MM, 0)}
+          >
+            <ArrowRight className="h-3 w-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            title="Move front"
+            onClick={() => onMove(0, -MOVE_STEP_MM)}
+          >
+            <ArrowDown className="h-3 w-3" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-6 w-6 p-0"
+            title="Move back"
+            onClick={() => onMove(0, MOVE_STEP_MM)}
+          >
+            <ArrowUp className="h-3 w-3" />
           </Button>
         </div>
       </div>
