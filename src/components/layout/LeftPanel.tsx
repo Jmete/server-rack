@@ -1,16 +1,22 @@
 'use client';
 
-import { Plus, Server, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, Plus, Server, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DraggableEquipment } from '@/components/dnd/DraggableEquipment';
 import { useRackStore } from '@/stores';
 import { EQUIPMENT_CATALOG } from '@/constants';
 import { useEquipmentDrag } from '@/hooks/useEquipmentDrag';
+import { groupByManufacturer } from '@/lib/catalog';
 
 export function LeftPanel() {
   const equipment = useRackStore((state) => state.equipment);
   const removeEquipment = useRackStore((state) => state.removeEquipment);
   const { findNextAvailableSlot, addEquipmentById } = useEquipmentDrag();
+  const groupedEquipment = groupByManufacturer(EQUIPMENT_CATALOG);
+  const [collapsedManufacturers, setCollapsedManufacturers] = useState<
+    Record<string, boolean>
+  >({});
 
   const handleAddEquipment = (equipmentId: string) => {
     const definition = EQUIPMENT_CATALOG.find((eq) => eq.id === equipmentId);
@@ -37,30 +43,52 @@ export function LeftPanel() {
       </div>
 
       {/* Equipment List */}
-      <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {EQUIPMENT_CATALOG.map((eq) => (
-          <DraggableEquipment key={eq.id} equipmentId={eq.id}>
-            <div
-              className="p-2.5 border border-border rounded-md bg-background hover:bg-accent/50 cursor-pointer transition-colors group"
-              onClick={() => handleAddEquipment(eq.id)}
+      <div className="flex-1 overflow-y-auto p-2 space-y-3">
+        {groupedEquipment.map((group) => (
+          <div key={group.manufacturer} className="space-y-1.5">
+            <button
+              type="button"
+              className="w-full px-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center justify-between"
+              onClick={() =>
+                setCollapsedManufacturers((prev) => ({
+                  ...prev,
+                  [group.manufacturer]: !(prev[group.manufacturer] ?? false),
+                }))
+              }
             >
-              <div className="flex justify-between items-start gap-2">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-xs truncate">{eq.name}</div>
-                  <div className="text-[10px] text-muted-foreground">
-                    {eq.heightU}U · {eq.ports.length} ports
+              <span>{group.manufacturer}</span>
+              {collapsedManufacturers[group.manufacturer] ? (
+                <ChevronRight className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+            </button>
+            {!collapsedManufacturers[group.manufacturer] &&
+              group.items.map((eq) => (
+                <DraggableEquipment key={eq.id} equipmentId={eq.id}>
+                  <div
+                    className="p-2.5 border border-border rounded-md bg-background hover:bg-accent/50 cursor-pointer transition-colors group"
+                    onClick={() => handleAddEquipment(eq.id)}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-xs truncate">{eq.name}</div>
+                        <div className="text-[10px] text-muted-foreground">
+                          {eq.heightU}U · {eq.ports.length} ports
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          </DraggableEquipment>
+                </DraggableEquipment>
+              ))}
+          </div>
         ))}
       </div>
 

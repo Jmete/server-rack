@@ -8,6 +8,7 @@ import { Equipment } from '@/types';
 import { ShelfItem, ShelfItemDefinition, ShelfItemPosition } from '@/types/shelf';
 import { useShelfStore } from '@/stores/useShelfStore';
 import { SHELF_ITEM_CATALOG } from '@/constants/shelfItems';
+import { groupByManufacturer } from '@/lib/catalog';
 
 interface ShelfItemsPanelProps {
   shelf: Equipment;
@@ -18,6 +19,9 @@ const MOVE_STEP_MM = 10;
 export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
   const [expanded, setExpanded] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [collapsedManufacturers, setCollapsedManufacturers] = useState<
+    Record<string, boolean>
+  >({});
 
   // Select raw data and derive from it to avoid infinite loops
   const shelfItemsMap = useShelfStore((state) => state.shelfItems);
@@ -29,6 +33,7 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
   const getUsableShelfArea = useShelfStore((state) => state.getUsableShelfArea);
   const findAvailablePositionOnShelf = useShelfStore((state) => state.findAvailablePositionOnShelf);
   const usableArea = getUsableShelfArea(shelf);
+  const groupedShelfItems = groupByManufacturer(SHELF_ITEM_CATALOG);
 
   const handleAddItem = (definition: ShelfItemDefinition) => {
     const position = findAvailablePositionOnShelf(
@@ -98,22 +103,44 @@ export function ShelfItemsPanel({ shelf }: ShelfItemsPanelProps) {
               <DialogHeader>
                 <DialogTitle>Add Item to Shelf</DialogTitle>
               </DialogHeader>
-              <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                {SHELF_ITEM_CATALOG.map((item) => {
-                  const canPlace = Boolean(
-                    findAvailablePositionOnShelf(shelf.instanceId, item, shelf)
-                  );
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {groupedShelfItems.map((group) => (
+                  <div key={group.manufacturer} className="space-y-2">
+                    <button
+                      type="button"
+                      className="w-full text-xs font-semibold uppercase tracking-wide text-muted-foreground flex items-center justify-between"
+                      onClick={() =>
+                        setCollapsedManufacturers((prev) => ({
+                          ...prev,
+                          [group.manufacturer]: !(prev[group.manufacturer] ?? false),
+                        }))
+                      }
+                    >
+                      <span>{group.manufacturer}</span>
+                      {collapsedManufacturers[group.manufacturer] ? (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                    </button>
+                    {!collapsedManufacturers[group.manufacturer] &&
+                      group.items.map((item) => {
+                        const canPlace = Boolean(
+                          findAvailablePositionOnShelf(shelf.instanceId, item, shelf)
+                        );
 
-                  return (
-                    <ShelfItemCatalogCard
-                      key={item.id}
-                      item={item}
-                      usableArea={usableArea}
-                      canPlace={canPlace}
-                      onAdd={() => handleAddItem(item)}
-                    />
-                  );
-                })}
+                        return (
+                          <ShelfItemCatalogCard
+                            key={item.id}
+                            item={item}
+                            usableArea={usableArea}
+                            canPlace={canPlace}
+                            onAdd={() => handleAddItem(item)}
+                          />
+                        );
+                      })}
+                  </div>
+                ))}
               </div>
             </DialogContent>
           </Dialog>
