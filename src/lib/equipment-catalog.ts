@@ -11,5 +11,4 @@ export {
   PATCH_PANEL_24,
   RACK_UPS,
   UK_PDU,
-  HIKVISION_IDS_7208HQHI_M1S,
 } from '@/constants/equipment';

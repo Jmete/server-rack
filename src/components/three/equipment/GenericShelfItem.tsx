@@ -6,6 +6,7 @@ import { ShelfItem } from "@/types/shelf";
 import { createPortInstances, PORT_TYPE_COLORS } from "@/types/port";
 import { mmToScene } from "@/constants";
 import { Port, RJ45Port, SFPPort } from "../ports";
+import { getShelfItemById } from "@/constants/shelfItems";
 
 interface GenericShelfItemProps {
   item: ShelfItem;
@@ -125,33 +126,39 @@ export function GenericShelfItem({
   isSelected,
   onClick,
 }: GenericShelfItemProps) {
-  // Calculate dimensions (without rotation applied - rotation is handled by parent group)
-  const width = mmToScene(item.width);
-  const depth = mmToScene(item.depth);
-  const height = mmToScene(item.heightMm);
+  // Look up the current definition to get fresh values on hot reload
+  const definition = useMemo(() => getShelfItemById(item.id), [item.id]);
+
+  // Use dimensions and color from definition if available (updates on hot reload)
+  const width = mmToScene(definition?.width ?? item.width);
+  const depth = mmToScene(definition?.depth ?? item.depth);
+  const height = mmToScene(definition?.heightMm ?? item.heightMm);
+  const color = definition?.color ?? item.color ?? "#2a2a2a";
 
   const ports = useMemo(() => {
-    return createPortInstances(item.ports, item.instanceId);
-  }, [item.ports, item.instanceId]);
+    // Use ports from the definition (which updates on hot reload) rather than the instance
+    const portDefs = definition?.ports || item.ports;
+    return createPortInstances(portDefs, item.instanceId);
+  }, [definition, item.ports, item.instanceId]);
 
   const bodyMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: item.color || "#2a2a2a",
+        color: color,
         metalness: 0.3,
         roughness: 0.7,
       }),
-    [item.color]
+    [color]
   );
 
   const faceplateMaterial = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
-        color: item.color || "#2a2a2a",
+        color: color,
         metalness: 0.2,
         roughness: 0.8,
       }),
-    [item.color]
+    [color]
   );
 
   // Port position calculations (relative to item center)
@@ -161,10 +168,15 @@ export function GenericShelfItem({
   // Helper to convert port position (mm from item origin) to 3D position
   const getPortPosition = (portPosX: number, portPosY: number, portPosZ: number): [number, number, number] => {
     // Port positions are in mm from the left edge (X), bottom edge (Y), and front face (Z)
-    const x = -width / 2 + mmToScene(portPosX);
+    // For back-facing ports, mirror the X coordinate since left/right are reversed when viewing from behind
+    const itemDepthMm = definition?.depth ?? item.depth;
+    const isBackFace = portPosZ >= itemDepthMm;
+    const x = isBackFace
+      ? width / 2 - mmToScene(portPosX)   // Mirror X for back face
+      : -width / 2 + mmToScene(portPosX); // Normal X for front face
     const y = -height / 2 + mmToScene(portPosY);
     // Z: 0 = front, depth = back
-    const z = portPosZ === 0 ? frontZ : (portPosZ >= item.depth ? backZ : frontZ - mmToScene(portPosZ));
+    const z = portPosZ === 0 ? frontZ : (isBackFace ? backZ : frontZ - mmToScene(portPosZ));
 
     return [x, y, z - 0.001]; // Slight offset to prevent z-fighting
   };

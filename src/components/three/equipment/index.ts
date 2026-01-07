@@ -11,6 +11,5 @@ export { T1600G52PS } from './T1600G52PS';
 export { FortiGate100F } from './FortiGate100F';
 export { T1600G28PS } from './T1600G28PS';
 export { MA5822S16POTS } from './MA5822S16POTS';
-export { HikvisionIDS7208HQHIM1S } from './HikvisionIDS7208HQHIM1S';
 export { RackShelf } from './RackShelf';
 export { GenericShelfItem } from './GenericShelfItem';

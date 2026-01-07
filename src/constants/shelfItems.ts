@@ -45,7 +45,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'usb-1',
       type: 'usb',
       label: 'USB',
-      position: { x: 112, y: 16, z: 242 },
+      position: { x: 95, y: 16, z: 242 },
       speed: 'n/a',
     },
     // HDMI output
@@ -53,7 +53,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'hdmi-1',
       type: 'hdmi',
       label: 'HDMI',
-      position: { x: 145, y: 22, z: 242 },
+      position: { x: 110, y: 16, z: 242 },
       speed: 'n/a',
     },
     // VGA output
@@ -61,7 +61,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'vga-1',
       type: 'vga',
       label: 'VGA',
-      position: { x: 170, y: 22, z: 242 },
+      position: { x: 130, y: 18, z: 242 },
       speed: 'n/a',
     },
     // Audio out (RCA)
@@ -69,7 +69,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'audio-out-1',
       type: 'rca-audio',
       label: 'Audio Out',
-      position: { x: 198, y: 16, z: 242 },
+      position: { x: 150, y: 16, z: 242 },
       speed: 'n/a',
     },
     // Audio in (RCA)
@@ -77,7 +77,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'audio-in-1',
       type: 'rca-audio',
       label: 'Audio In',
-      position: { x: 198, y: 28, z: 242 },
+      position: { x: 150, y: 28, z: 242 },
       speed: 'n/a',
     },
     // LAN network interface
@@ -85,7 +85,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'lan-1',
       type: 'rj45-lan',
       label: 'LAN',
-      position: { x: 222, y: 22, z: 242 },
+      position: { x: 165, y: 16, z: 242 },
       speed: '100M',
     },
     // RS-485 serial interface
@@ -93,7 +93,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'rs485-1',
       type: 'rs485',
       label: 'RS-485',
-      position: { x: 244, y: 22, z: 242 },
+      position: { x: 180, y: 16, z: 242 },
       speed: 'n/a',
     },
     // 12V DC power input
@@ -101,7 +101,7 @@ export const HIKVISION_DVR_SHELF_ITEM: ShelfItemDefinition = {
       id: 'power-1',
       type: 'power-dc',
       label: '12V DC',
-      position: { x: 266, y: 22, z: 242 },
+      position: { x: 195, y: 16, z: 242 },
       speed: 'power',
     },
   ],
