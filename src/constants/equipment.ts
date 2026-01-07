@@ -753,6 +753,112 @@ export const UCM6208: EquipmentDefinition = {
   ],
 };
 
+// Hikvision iDS-7208HQHI-M1/S DVR
+export const HIKVISION_IDS_7208HQHI_M1S: EquipmentDefinition = {
+  id: 'hikvision-ids-7208hqhi-m1s',
+  type: 'dvr',
+  name: 'Hikvision iDS-7208HQHI-M1/S',
+  model: 'iDS-7208HQHI-M1/S',
+  manufacturer: 'Hikvision',
+  heightU: 1,
+  width: 315,
+  depth: 242,
+  color: EQUIPMENT_COLORS.BLACK,
+  ports: [
+    // 8x BNC video inputs (2 rows of 4)
+    ...Array.from({ length: 8 }, (_, i) => {
+      const isTopRow = i < 4;
+      const col = isTopRow ? i : i - 4;
+      return {
+        id: `video-in-${i + 1}`,
+        type: 'bnc-video' as const,
+        label: `${i + 1}`,
+        position: {
+          x: 25 + col * 16,
+          y: isTopRow ? 28 : 16,
+          z: 242,
+        },
+        speed: 'n/a' as const,
+        row: isTopRow ? 0 : 1,
+        column: col,
+      };
+    }),
+    // Video out (CVBS)
+    {
+      id: 'video-out-1',
+      type: 'bnc-video',
+      label: 'Video Out',
+      position: { x: 95, y: 28, z: 242 },
+      speed: 'n/a',
+    },
+    // USB interface
+    {
+      id: 'usb-1',
+      type: 'usb',
+      label: 'USB',
+      position: { x: 112, y: 16, z: 242 },
+      speed: 'n/a',
+    },
+    // HDMI output
+    {
+      id: 'hdmi-1',
+      type: 'hdmi',
+      label: 'HDMI',
+      position: { x: 145, y: 22, z: 242 },
+      speed: 'n/a',
+    },
+    // VGA output
+    {
+      id: 'vga-1',
+      type: 'vga',
+      label: 'VGA',
+      position: { x: 170, y: 22, z: 242 },
+      speed: 'n/a',
+    },
+    // Audio out (RCA)
+    {
+      id: 'audio-out-1',
+      type: 'rca-audio',
+      label: 'Audio Out',
+      position: { x: 198, y: 16, z: 242 },
+      speed: 'n/a',
+    },
+    // Audio in (RCA)
+    {
+      id: 'audio-in-1',
+      type: 'rca-audio',
+      label: 'Audio In',
+      position: { x: 198, y: 28, z: 242 },
+      speed: 'n/a',
+    },
+    // LAN network interface
+    {
+      id: 'lan-1',
+      type: 'rj45-lan',
+      label: 'LAN',
+      position: { x: 222, y: 22, z: 242 },
+      speed: '100M',
+    },
+    // RS-485 serial interface
+    {
+      id: 'rs485-1',
+      type: 'rs485',
+      label: 'RS-485',
+      position: { x: 244, y: 22, z: 242 },
+      speed: 'n/a',
+    },
+    // 12V DC power input
+    {
+      id: 'power-1',
+      type: 'power-dc',
+      label: '12V DC',
+      position: { x: 266, y: 22, z: 242 },
+      speed: 'power',
+    },
+  ],
+  features: [],
+};
+
 // Export all equipment as catalog
 export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   UDM_PRO,
@@ -768,6 +874,7 @@ export const EQUIPMENT_CATALOG: EquipmentDefinition[] = [
   RACK_UPS,
   UK_PDU,
   UCM6208,
+  HIKVISION_IDS_7208HQHI_M1S,
 ];
 
 // Get equipment by ID

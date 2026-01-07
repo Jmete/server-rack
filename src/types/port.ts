@@ -4,6 +4,12 @@ export type PortType =
   | 'rj45-console'
   | 'sfp-plus'
   | 'usb'
+  | 'bnc-video'
+  | 'rca-audio'
+  | 'hdmi'
+  | 'vga'
+  | 'rs485'
+  | 'power-dc'
   | 'power-iec-c13'
   | 'power-iec-c14'
   | 'uk-outlet-bs1363'
@@ -70,6 +76,12 @@ export const PORT_TYPE_LABELS: Record<PortType, string> = {
   'rj45-console': 'RJ45 Console',
   'sfp-plus': 'SFP+',
   'usb': 'USB',
+  'bnc-video': 'BNC Video',
+  'rca-audio': 'RCA Audio',
+  'hdmi': 'HDMI',
+  'vga': 'VGA',
+  'rs485': 'RS-485',
+  'power-dc': 'DC Power',
   'power-iec-c13': 'IEC C13',
   'power-iec-c14': 'IEC C14',
   'uk-outlet-bs1363': 'UK BS1363',
@@ -84,6 +96,12 @@ export const PORT_TYPE_COLORS: Record<PortType, string> = {
   'rj45-console': '#64748b', // slate
   'sfp-plus': '#3b82f6', // blue
   'usb': '#6b7280', // gray
+  'bnc-video': '#0ea5e9', // sky blue
+  'rca-audio': '#f97316', // orange
+  'hdmi': '#475569', // slate
+  'vga': '#94a3b8', // light slate
+  'rs485': '#8b5cf6', // purple
+  'power-dc': '#ef4444', // red
   'power-iec-c13': '#ef4444', // red
   'power-iec-c14': '#ef4444', // red
   'uk-outlet-bs1363': '#ef4444', // red

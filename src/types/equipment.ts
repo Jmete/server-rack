@@ -6,7 +6,8 @@ export type EquipmentType =
   | 'patch-panel'
   | 'ups'
   | 'pdu'
-  | 'pbx';
+  | 'pbx'
+  | 'dvr';
 
 export interface EquipmentFeature {
   type: 'display' | 'led' | 'power-button';
