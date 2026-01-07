@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { useConnectionStore, usePortStore, useUIStore } from '@/stores';
 import { Port as PortType } from '@/types';
 import { UI_COLORS } from '@/constants';
-import { canConnect } from '@/types/cable';
+import { CableType, CABLE_PORT_COMPATIBILITY, CABLE_TYPE_LABELS, canConnect } from '@/types/cable';
 
 interface PortProps {
   port: PortType;
@@ -47,13 +47,38 @@ export function Port({
     )
   );
 
+  const resolvedCableType = useMemo(() => {
+    if (!connectionMode.active || !connectionMode.sourcePortId) return null;
+    if (connectionMode.sourcePortId === port.globalId) {
+      return connectionMode.cableType;
+    }
+
+    const sourceType = portTypes[connectionMode.sourcePortId];
+    if (!sourceType) return null;
+
+    if (canConnect(sourceType, port.type, connectionMode.cableType)) {
+      return connectionMode.cableType;
+    }
+
+    const compatibleTypes = (Object.keys(CABLE_TYPE_LABELS) as CableType[]).filter((type) =>
+      canConnect(sourceType, port.type, type)
+    );
+
+    return compatibleTypes.length === 1 ? compatibleTypes[0] : null;
+  }, [
+    connectionMode.active,
+    connectionMode.sourcePortId,
+    connectionMode.cableType,
+    port.globalId,
+    port.type,
+    portTypes,
+  ]);
+
   const isCompatible = useMemo(() => {
     if (!connectionMode.active || !connectionMode.sourcePortId) return true;
     if (connectionMode.sourcePortId === port.globalId) return true;
-    const sourceType = portTypes[connectionMode.sourcePortId];
-    if (!sourceType) return true;
-    return canConnect(sourceType, port.type, connectionMode.cableType);
-  }, [connectionMode.active, connectionMode.sourcePortId, connectionMode.cableType, port.globalId, port.type, portTypes]);
+    return resolvedCableType !== null;
+  }, [connectionMode.active, connectionMode.sourcePortId, port.globalId, resolvedCableType]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -67,17 +92,24 @@ export function Port({
       if (port.type === 'rj45-console') {
         return;
       }
-      if (port.type === 'sfp-plus') {
-        setCableType('fiber-lc');
-      } else if (port.type === 'rj45-lan' || port.type === 'rj45-wan') {
-        setCableType('ethernet-cat6');
-      } else if (port.type === 'fxo' || port.type === 'fxs') {
-        setCableType('phone-rj11');
-      } else if (port.type === 'uk-outlet-bs1363') {
-        setCableType('power-uk');
-      } else if (port.type === 'power-iec-c13' || port.type === 'power-iec-c14') {
-        setCableType('power-iec');
+
+      const currentCable = connectionMode.cableType;
+      const supportsPort = CABLE_PORT_COMPATIBILITY[currentCable]?.includes(port.type) ?? false;
+
+      if (!supportsPort) {
+        if (port.type === 'sfp-plus') {
+          setCableType('fiber-lc');
+        } else if (port.type === 'rj45-lan' || port.type === 'rj45-wan') {
+          setCableType('ethernet-cat6');
+        } else if (port.type === 'fxo' || port.type === 'fxs') {
+          setCableType('phone-rj11');
+        } else if (port.type === 'uk-outlet-bs1363') {
+          setCableType('power-uk');
+        } else if (port.type === 'power-iec-c13' || port.type === 'power-iec-c14') {
+          setCableType('power-iec');
+        }
       }
+
       startConnection(port.globalId);
       return;
     }
@@ -88,6 +120,10 @@ export function Port({
 
     if (!isCompatible) {
       return;
+    }
+
+    if (resolvedCableType && resolvedCableType !== connectionMode.cableType) {
+      setCableType(resolvedCableType);
     }
 
     completeConnection(port.globalId);
