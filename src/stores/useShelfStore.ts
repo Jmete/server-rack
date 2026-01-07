@@ -22,6 +22,10 @@ interface ShelfState {
   // Map of shelf instance ID to array of items on that shelf
   shelfItems: Record<string, ShelfItem[]>;
 
+  // Import/Export
+  importShelfItems: (shelfItems: Record<string, ShelfItem[]>) => void;
+  exportShelfItems: () => Record<string, ShelfItem[]>;
+
   // Actions
   addItemToShelf: (
     shelfInstanceId: string,
@@ -78,6 +82,14 @@ interface ShelfState {
 
 export const useShelfStore = create<ShelfState>((set, get) => ({
   shelfItems: {},
+
+  importShelfItems: (shelfItems) => {
+    set({ shelfItems });
+  },
+
+  exportShelfItems: () => {
+    return get().shelfItems;
+  },
 
   addItemToShelf: (shelfInstanceId, definition, position, shelfEquipment) => {
     const state = get();

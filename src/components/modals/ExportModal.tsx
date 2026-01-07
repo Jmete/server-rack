@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useConnectionStore, useRackStore, useUIStore } from '@/stores';
+import { useShelfStore } from '@/stores/useShelfStore';
 import { PORT_TYPE_LABELS } from '@/types/port';
 
 type LegendPort = {
@@ -59,6 +60,8 @@ export function ExportModal() {
   const exportConfig = useRackStore((state) => state.exportConfig);
   const cables = useConnectionStore((state) => state.cables);
   const importCables = useConnectionStore((state) => state.importCables);
+  const exportShelfItems = useShelfStore((state) => state.exportShelfItems);
+  const importShelfItems = useShelfStore((state) => state.importShelfItems);
   const setIsExporting = useUIStore((state) => state.setIsExporting);
   const isOpen = useUIStore((state) => state.exportModalOpen);
   const setOpen = useUIStore((state) => state.setExportModalOpen);
@@ -94,9 +97,11 @@ export function ExportModal() {
   );
 
   const handleExportJson = () => {
+    const { rack, equipment } = exportConfig();
     const payload = {
-      rack: exportConfig().rack,
-      equipment: exportConfig().equipment,
+      rack,
+      equipment,
+      shelfItems: exportShelfItems(),
       cables,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -112,6 +117,7 @@ export function ExportModal() {
     const payload = JSON.parse(text);
     if (payload?.rack && payload?.equipment) {
       importConfig(payload.rack, payload.equipment);
+      importShelfItems(payload.shelfItems ?? {});
     }
     if (payload?.cables) {
       importCables(payload.cables);
