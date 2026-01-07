@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Server, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { DraggableEquipment } from '@/components/dnd/DraggableEquipment';
 import { useRackStore } from '@/stores';
 import { EQUIPMENT_CATALOG } from '@/constants';
@@ -13,10 +14,42 @@ export function LeftPanel() {
   const equipment = useRackStore((state) => state.equipment);
   const removeEquipment = useRackStore((state) => state.removeEquipment);
   const { findNextAvailableSlot, addEquipmentById } = useEquipmentDrag();
-  const groupedEquipment = groupByManufacturer(EQUIPMENT_CATALOG);
+  const groupedEquipment = useMemo(
+    () => groupByManufacturer(EQUIPMENT_CATALOG),
+    []
+  );
+  const [searchQuery, setSearchQuery] = useState('');
   const [collapsedManufacturers, setCollapsedManufacturers] = useState<
     Record<string, boolean>
   >({});
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredGroups = useMemo(() => {
+    if (!normalizedQuery) {
+      return groupedEquipment;
+    }
+
+    return groupedEquipment.reduce((acc, group) => {
+        const manufacturerMatch = group.manufacturer
+          .toLowerCase()
+          .includes(normalizedQuery);
+        const items = manufacturerMatch
+          ? group.items
+          : group.items.filter((item) => {
+              const haystack = `${item.name} ${item.model} ${item.manufacturer} ${item.type}`.toLowerCase();
+              return haystack.includes(normalizedQuery);
+            });
+
+        if (items.length > 0) {
+          acc.push({
+            manufacturer: group.manufacturer,
+            items,
+          });
+        }
+
+        return acc;
+      }, [] as typeof groupedEquipment);
+  }, [groupedEquipment, normalizedQuery]);
+  const hasQuery = normalizedQuery.length > 0;
 
   const handleAddEquipment = (equipmentId: string) => {
     const definition = EQUIPMENT_CATALOG.find((eq) => eq.id === equipmentId);
@@ -40,11 +73,22 @@ export function LeftPanel() {
         <p className="text-xs text-muted-foreground mt-1">
           Click or drag to add equipment
         </p>
+        <Input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search equipment"
+          className="mt-2 h-8 text-xs"
+        />
       </div>
 
       {/* Equipment List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-3">
-        {groupedEquipment.map((group) => (
+        {filteredGroups.length === 0 && (
+          <div className="px-2 py-3 text-xs text-muted-foreground text-center">
+            No matches found
+          </div>
+        )}
+        {filteredGroups.map((group) => (
           <div key={group.manufacturer} className="space-y-1.5">
             <button
               type="button"
@@ -57,13 +101,13 @@ export function LeftPanel() {
               }
             >
               <span>{group.manufacturer}</span>
-              {collapsedManufacturers[group.manufacturer] ? (
+              {collapsedManufacturers[group.manufacturer] && !hasQuery ? (
                 <ChevronRight className="h-3 w-3" />
               ) : (
                 <ChevronDown className="h-3 w-3" />
               )}
             </button>
-            {!collapsedManufacturers[group.manufacturer] &&
+            {(!collapsedManufacturers[group.manufacturer] || hasQuery) &&
               group.items.map((eq) => (
                 <DraggableEquipment key={eq.id} equipmentId={eq.id}>
                   <div
