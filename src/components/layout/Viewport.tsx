@@ -8,14 +8,17 @@ import { RackDropZones } from '@/components/dnd/RackDropZones';
 import { RackEquipmentOverlay } from '@/components/dnd/RackEquipmentOverlay';
 import { ConnectionModeFAB } from '@/components/viewport/ConnectionModeFAB';
 import { ViewportBackgroundToggle } from '@/components/viewport/ViewportBackgroundToggle';
+import { LabelOverlayToggle } from '@/components/viewport/LabelOverlayToggle';
 import { useTheme } from '@/components/theme';
 
 const VIEWPORT_BG_KEY = 'server-rack-viewport-bg';
+const LABELS_KEY = 'server-rack-labels';
 
 export function Viewport() {
   const { resolvedTheme, mounted } = useTheme();
   const clearSelection = useUIStore((state) => state.clearSelection);
   const [isDarkBackground, setIsDarkBackground] = useState(true);
+  const [showLabels, setShowLabels] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   // Set default based on theme and load from localStorage
@@ -30,6 +33,13 @@ export function Viewport() {
       const isDarkTheme = resolvedTheme === 'dark' || resolvedTheme === 'onyx';
       setIsDarkBackground(isDarkTheme);
     }
+
+    // Load label overlay preference
+    const storedLabels = localStorage.getItem(LABELS_KEY);
+    if (storedLabels !== null) {
+      setShowLabels(storedLabels === 'true');
+    }
+
     setInitialized(true);
   }, [mounted, resolvedTheme]);
 
@@ -37,6 +47,12 @@ export function Viewport() {
     const newValue = !isDarkBackground;
     setIsDarkBackground(newValue);
     localStorage.setItem(VIEWPORT_BG_KEY, newValue ? 'dark' : 'light');
+  };
+
+  const handleLabelToggle = () => {
+    const newValue = !showLabels;
+    setShowLabels(newValue);
+    localStorage.setItem(LABELS_KEY, newValue ? 'true' : 'false');
   };
 
   const bgClass = isDarkBackground
@@ -51,12 +67,15 @@ export function Viewport() {
         gl={{ antialias: true, preserveDrawingBuffer: true, alpha: true }}
         onPointerMissed={clearSelection}
       >
-        <Scene isDarkBackground={isDarkBackground} />
+        <Scene isDarkBackground={isDarkBackground} showLabelOverlays={showLabels} />
       </Canvas>
       <RackEquipmentOverlay />
       <RackDropZones />
       {initialized && (
-        <ViewportBackgroundToggle isDark={isDarkBackground} onToggle={handleToggle} />
+        <>
+          <LabelOverlayToggle showLabels={showLabels} onToggle={handleLabelToggle} isDark={isDarkBackground} />
+          <ViewportBackgroundToggle isDark={isDarkBackground} onToggle={handleToggle} />
+        </>
       )}
       <ConnectionModeFAB />
     </div>

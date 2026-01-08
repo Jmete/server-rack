@@ -33,6 +33,9 @@ interface UIState {
   exportCameraReady: boolean;
   exportGeneration: number;
 
+  // Label overlay state
+  showLabelOverlays: boolean;
+
   // Selection actions
   selectEquipment: (id: string | null) => void;
   selectCable: (id: string | null) => void;
@@ -68,6 +71,9 @@ interface UIState {
   setExportCameraReady: (ready: boolean) => void;
   bumpExportGeneration: () => void;
 
+  // Label overlay actions
+  setShowLabelOverlays: (show: boolean) => void;
+
   // Utility
   clearSelection: () => void;
 }
@@ -97,6 +103,7 @@ export const useUIStore = create<UIState>((set) => ({
   isExporting: false,
   exportCameraReady: false,
   exportGeneration: 0,
+  showLabelOverlays: false,
 
   // Selection actions
   selectEquipment: (id: string | null) => {
@@ -196,6 +203,11 @@ export const useUIStore = create<UIState>((set) => ({
 
   bumpExportGeneration: () => {
     set((state) => ({ exportGeneration: state.exportGeneration + 1 }));
+  },
+
+  // Label overlay actions
+  setShowLabelOverlays: (show: boolean) => {
+    set({ showLabelOverlays: show });
   },
 
   // Utility

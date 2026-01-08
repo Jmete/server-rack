@@ -11,6 +11,7 @@ import { RackHoverHighlight } from './RackHoverHighlight';
 import { CableManager } from './cables/CableManager';
 import { PortLabelProjector } from './PortLabelProjector';
 import { ExportCameraController } from './ExportCameraController';
+import { LabelOverlayManager } from './LabelOverlayManager';
 import { useRackStore, useUIStore } from '@/stores';
 import { FRAME_THICKNESS_MM, RACK_CONSTANTS, mmToScene, uToScene } from '@/constants';
 
@@ -57,9 +58,10 @@ function InitialCameraSetup() {
 
 interface SceneProps {
   isDarkBackground?: boolean;
+  showLabelOverlays?: boolean;
 }
 
-export function Scene({ isDarkBackground = true }: SceneProps) {
+export function Scene({ isDarkBackground = true, showLabelOverlays = false }: SceneProps) {
   const equipment = useRackStore((state) => state.equipment);
   const selectedEquipmentId = useUIStore((state) => state.selectedEquipmentId);
   const selectEquipment = useUIStore((state) => state.selectEquipment);
@@ -147,6 +149,9 @@ export function Scene({ isDarkBackground = true }: SceneProps) {
           onClick={() => selectEquipment(eq.instanceId)}
         />
       ))}
+
+      {/* Label Overlays */}
+      {showLabelOverlays && !isExporting && <LabelOverlayManager />}
 
       {/* Cables */}
       <CableManager />
