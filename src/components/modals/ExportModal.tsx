@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { Download, Upload, FileJson, FileImage, FileText, FileSpreadsheet } from 'lucide-react';
 import {
   Dialog,
@@ -197,10 +198,26 @@ export function ExportModal() {
 
   const buildExportCanvas = async () => {
     const canvas = document.querySelector('canvas');
-    if (!canvas) return null;
+    let sourceCanvas: HTMLCanvasElement | null = canvas;
+    let canvasWidth = 0;
+    let canvasHeight = 0;
 
-    const canvasWidth = canvas.clientWidth;
-    const canvasHeight = canvas.clientHeight;
+    if (canvas) {
+      canvasWidth = canvas.clientWidth;
+      canvasHeight = canvas.clientHeight;
+    } else {
+      const fallback = document.querySelector('[data-rack-fallback="true"]') as HTMLElement | null;
+      if (!fallback) return null;
+      const rect = fallback.getBoundingClientRect();
+      canvasWidth = rect.width;
+      canvasHeight = rect.height;
+      sourceCanvas = await html2canvas(fallback, {
+        backgroundColor: null,
+        scale: 2,
+      });
+    }
+
+    if (!sourceCanvas || canvasWidth === 0 || canvasHeight === 0) return null;
     const uiState = useUIStore.getState();
     const bounds = uiState.rackScreenBounds ?? { left: 0, top: 0, width: canvasWidth, height: canvasHeight };
     const padding = Math.max(8, Math.round(bounds.height * 0.04));
@@ -211,8 +228,8 @@ export function ExportModal() {
     const cropWidth = Math.max(1, cropRight - cropLeft);
     const cropHeight = Math.max(1, cropBottom - cropTop);
 
-    const scaleX = canvas.width / canvasWidth;
-    const scaleY = canvas.height / canvasHeight;
+    const scaleX = sourceCanvas.width / canvasWidth;
+    const scaleY = sourceCanvas.height / canvasHeight;
     const sourceX = cropLeft * scaleX;
     const sourceY = cropTop * scaleY;
     const sourceWidth = cropWidth * scaleX;
@@ -224,7 +241,7 @@ export function ExportModal() {
     const rackContext = rackCanvas.getContext('2d');
     if (!rackContext) return null;
     rackContext.drawImage(
-      canvas,
+      sourceCanvas,
       sourceX,
       sourceY,
       sourceWidth,

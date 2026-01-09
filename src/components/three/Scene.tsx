@@ -12,7 +12,7 @@ import { CableManager } from './cables/CableManager';
 import { PortLabelProjector } from './PortLabelProjector';
 import { ExportCameraController } from './ExportCameraController';
 import { LabelOverlayManager } from './LabelOverlayManager';
-import { useRackStore, useUIStore } from '@/stores';
+import { useRackStore, useUIStore, usePerformanceStore, getPerformanceConfig } from '@/stores';
 import { FRAME_THICKNESS_MM, RACK_CONSTANTS, mmToScene, uToScene } from '@/constants';
 
 function InitialCameraSetup() {
@@ -67,6 +67,11 @@ export function Scene({ isDarkBackground = true, showLabelOverlays = false }: Sc
   const selectEquipment = useUIStore((state) => state.selectEquipment);
   const clearSelection = useUIStore((state) => state.clearSelection);
   const isExporting = useUIStore((state) => state.isExporting);
+  const tier = usePerformanceStore((state) => state.tier);
+  const performanceConfig = getPerformanceConfig(tier);
+  const { gl } = useThree();
+  const supportsEnvironment =
+    gl.capabilities.isWebGL2 || gl.capabilities.floatFragmentTextures;
 
   const handleBackgroundClick = () => {
     clearSelection();
@@ -97,17 +102,19 @@ export function Scene({ isDarkBackground = true, showLabelOverlays = false }: Sc
       <directionalLight
         position={[10, 10, 5]}
         intensity={isDarkBackground ? 1 : 1.2}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={performanceConfig.shadows}
+        shadow-mapSize-width={performanceConfig.shadowMapSize}
+        shadow-mapSize-height={performanceConfig.shadowMapSize}
       />
       <directionalLight
         position={[-5, 5, -5]}
         intensity={isDarkBackground ? 0.3 : 0.5}
       />
 
-      {/* Environment for reflections */}
-      <Environment preset="city" />
+      {/* Environment for reflections - only on high tier */}
+      {performanceConfig.environment && supportsEnvironment && (
+        <Environment preset="city" />
+      )}
 
       {/* Grid Floor - click to deselect */}
       <mesh position={[0, -0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} onClick={handleBackgroundClick}>
@@ -115,7 +122,7 @@ export function Scene({ isDarkBackground = true, showLabelOverlays = false }: Sc
         <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {!isExporting && (
+      {!isExporting && performanceConfig.gridEnabled && (
         <Grid
           position={[0, 0, 0]}
           args={[20, 20]}

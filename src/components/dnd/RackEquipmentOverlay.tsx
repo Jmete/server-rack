@@ -48,6 +48,7 @@ function RackEquipmentHandle({
         onSelect();
       }}
       className={`absolute group pointer-events-auto cursor-grab ${isDragging ? 'opacity-50' : ''}`}
+      data-viewport-interactive="true"
       style={{ ...bounds, touchAction: 'none', pointerEvents: 'auto' }}
       title={name}
     >
@@ -55,6 +56,7 @@ function RackEquipmentHandle({
         <button
           type="button"
           className="absolute -right-3 -top-3 h-6 w-6 rounded-full bg-rose-600/90 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+          data-viewport-interactive="true"
           onClick={(event) => {
             event.stopPropagation();
             onRemove();

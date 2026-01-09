@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ThreeEvent, useFrame } from '@react-three/fiber';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useConnectionStore, usePortStore, useUIStore } from '@/stores';
 import { Port as PortType } from '@/types';
@@ -149,16 +149,22 @@ export function Port({
     return () => unregisterPort(port.globalId);
   }, [port.globalId, port.type, registerPort, unregisterPort]);
 
-  const lastPosition = useRef(new THREE.Vector3());
-  useFrame(() => {
+  // Calculate world position once when mounted and when position changes
+  // This replaces the per-frame useFrame hook for massive performance improvement
+  const updateWorldPosition = useCallback(() => {
     if (!meshRef.current) return;
-    const next = new THREE.Vector3();
-    meshRef.current.getWorldPosition(next);
-    if (!next.equals(lastPosition.current)) {
-      lastPosition.current.copy(next);
-      setPortPosition(port.globalId, [next.x, next.y, next.z]);
-    }
-  });
+    const worldPos = new THREE.Vector3();
+    meshRef.current.getWorldPosition(worldPos);
+    setPortPosition(port.globalId, [worldPos.x, worldPos.y, worldPos.z]);
+  }, [port.globalId, setPortPosition]);
+
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure parent transforms are applied
+    const frameId = requestAnimationFrame(() => {
+      updateWorldPosition();
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [position, updateWorldPosition]);
 
   return (
     <group position={position}>

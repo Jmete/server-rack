@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { mmToScene } from '@/constants';
 import { createCatenaryPoints } from '@/lib/catenary';
+import { usePerformanceStore, getPerformanceConfig } from '@/stores';
 
 interface CableProps {
   id: string;
@@ -36,8 +37,11 @@ export function Cable({
   directLength,
   length,
 }: CableProps) {
+  const tier = usePerformanceStore((state) => state.tier);
+  const performanceConfig = getPerformanceConfig(tier);
+
   const { geometry, startPlug, endPlug, startQuaternion, endQuaternion } = useMemo(() => {
-    const segments = 48;
+    const segments = performanceConfig.cableSegments;
     const startVec = new THREE.Vector3(...start);
     const endVec = new THREE.Vector3(...end);
     const fallbackDirect = startVec.distanceTo(endVec);
@@ -127,7 +131,8 @@ export function Cable({
     const curveSegments = Math.max(segments, points.length * 2);
     const curve = new THREE.CatmullRomCurve3(points);
     const radius = mmToScene(1.2);
-    const tube = new THREE.TubeGeometry(curve, curveSegments, radius, 8, false);
+    const radialSegments = performanceConfig.cableRadialSegments;
+    const tube = new THREE.TubeGeometry(curve, curveSegments, radius, radialSegments, false);
 
     const axis = new THREE.Vector3(0, 1, 0);
     const startTangent = curve.getTangent(0).normalize();
@@ -146,7 +151,7 @@ export function Cable({
       startPlug: { position: startPlugPos, length: plugLength },
       endPlug: { position: endPlugPos, length: plugLength },
     };
-  }, [start, end, route, tension, directLength, length]);
+  }, [start, end, route, tension, directLength, length, tier]);
 
   const displayColor = isSelected ? lightenColor(color, 0.35) : color;
 
